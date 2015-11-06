@@ -274,8 +274,9 @@ define([
                     // refreshing more expensive data.
                     // this.refreshBeat = 0;
                     //
-                    this.refreshInterval = 60000;
-                    this.refreshLastTime = null;
+                    // If we don't define these, then refreshing is disabled.
+                    // this.refreshInterval = null;
+                    // this.refreshLastTime = null;
 
 
                     // STATUS
@@ -396,16 +397,13 @@ define([
                     if (this.subscriptions) {
                         this.subscriptions.forEach(function (sub) {
                             this.runtime.drop(sub);
-                        });
+                        }.bind(this));
                         this.subscriptions = [];
                     }
                 }
             },
             stop: {
                 value: function () {
-                    if (this.heartbeatSubscription) {
-                        this.heartbeatSubscription.unsubscribe();
-                    }
                     this.stopSubscriptions();
                     if (this.onStop) {
                         this.onStop();
@@ -414,14 +412,16 @@ define([
             },
             handleHeartbeat: {
                 value: function (data) {
-                    var now = (new Date()).getTime();
-                    if (!this.refreshLastTime) {
-                        this.refreshLastTime = now;
-                    }
-                    if (now - this.refreshLastTime >= this.refreshInterval) {
-                        if (this.onRefreshbeat) {
-                            this.onRefreshbeat(data);
+                    if (this.refreshInterval !== undefined) {
+                        var now = (new Date()).getTime();
+                        if (!this.refreshLastTime) {
                             this.refreshLastTime = now;
+                        }
+                        if (now - this.refreshLastTime >= this.refreshInterval) {
+                            if (this.onRefreshbeat) {
+                                this.onRefreshbeat(data);
+                                this.refreshLastTime = now;
+                            }
                         }
                     }
                     if (this.onHeartbeat) {
