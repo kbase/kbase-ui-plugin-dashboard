@@ -1,10 +1,9 @@
 define([
     'promise',
     'kb_dashboard_widget_base',
-    'kb_common_utils',
-    'kb_widgetBases_standardWidget'
+    'kb_common_utils'
 ],
-    function (Promise, DashboardWidget, Utils, standardWidget) {
+    function (Promise, DashboardWidget, Utils) {
         'use strict';
 
         var widget = Object.create(DashboardWidget, {

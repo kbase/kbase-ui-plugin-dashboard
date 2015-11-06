@@ -6,67 +6,11 @@ define([
     'kb_service_api',
     'kb_common_logger',
     'kb_common_html',
-    'kb_widgetBases_standardWidget',
-    'kb_common_widgetSet',
+    'kb_widgetBases_dataWidget',
     'bootstrap'
 ],
-    function (Promise, NarrativeMethodStore, fServiceApi, Logger, html, standardWidget, WidgetSet) {
+    function (Promise, NarrativeMethodStore, fServiceApi, Logger, html, DataWidget) {
         'use strict';
-
-        function xfactory(config) {
-            var container, runtime = config.runtime,
-                widgetSet = WidgetSet.make({runtime: runtime});
-
-            function renderPanel(content) {
-                var div = html.tag('div'),
-                    span = html.tag('span');
-
-                return div({class: 'panel panel-default'}, [
-                    div({class: 'panel-heading'}, [
-                        div({class: 'kb-row'}, [
-                            div({class: '-col -span-8'}, [
-                                span({class: 'fa fa-cubes pull-left', style: {fontSize: '150%', paddingRight: '10px'}}),
-                                span({class: 'panel-title', style: {verticalAlign: 'middle'}, dataPlaceholder: 'title'}, [
-                                    content.title
-                                ])
-                            ]),
-                            div({class: '-col -span-4', style: {textAlign: 'right'}}, [
-                                div({class: 'btn-group', dataPlaceholder: 'buttons'})
-                            ])
-                        ])
-                    ]),
-                    div({class: 'panel-body'}, [
-                        div({dataPlaceholder: 'alert'}),
-                        div({dataPlaceholder: 'content'}, content.content)
-                    ])
-                ]);
-            }
-
-            function attach(node) {
-                container = node;
-                container.innerHTML = renderPanel({
-                    title: 'KBase Apps',
-                    content: 'This will be kbase apps'
-                });
-                return widgetSet.attach(node);
-            }
-            function start(params) {
-                return widgetSet.start(params);
-            }
-            function stop() {
-                return widgetSet.stop();
-            }
-            function detach() {
-                return widgetSet.detach();
-            }
-
-            return {
-                attach: attach,
-                start: start,
-                stop: stop,
-                detach: detach
-            };
-        }
 
 
         function factory(config) {
@@ -103,7 +47,7 @@ define([
             }
 
             function renderApps(w, type) {
-                var apps = w.getState('appOwnership')[type];
+                var apps = w.get('appOwnership')[type];
                 if (apps.length === 0) {
                     return div({style: {font: 'italic', textAlign: 'center'}}, [
                         'No Apps found.'
@@ -152,117 +96,114 @@ define([
                 ]);
             }
 
-            return standardWidget.make({
+            return DataWidget.make({
                 runtime: config.runtime,
                 title: 'KBase Apps',
                 on: {
-                    initialContent: function (w) {
+                    initialContent: function () {
                         return html.loading();
                     },
-                    start: function (w, params) {
-                        var methodStore = new NarrativeMethodStore(w.runtime.getConfig('services.narrative_method_store.url'), {
-                            token: w.runtime.getService('session').getAuthToken()
+                    fetch: function (params) {
+                        var methodStore = new NarrativeMethodStore(this.getConfig('services.narrative_method_store.url'), {
+                            token: this.runtime.service('session').getAuthToken()
                         }),
-                            kbService = fServiceApi.make({runtime: w.runtime});
+                            kbService = fServiceApi.make({runtime: this.runtime}),
+                            allApps,
+                            appMap = {};
+                        if (!this.runtime.service('session').isLoggedIn()) {
+                            this.set('apps', null);
+                            return;
+                        }
+                        return methodStore.list_apps_full_info({})
+                            .then(function (result) {
+                                allApps = result;
+                                allApps.forEach(function (x) {
+                                    appMap[x.id] = {
+                                        owned: {
+                                            count: 0,
+                                            narratives: {}
+                                        },
+                                        shared: {
+                                            count: 0,
+                                            narratives: {}
+                                        },
+                                        public: {
+                                            count: 0,
+                                            narratives: {}
+                                        }
+                                    };
+                                });
+                                return [allApps, kbService.getNarratives({
+                                        params: {showDeleted: 0}
+                                    })];
+                            })
+                            .spread(function (allApps, narratives) {
+                                // Now we have all the narratives this user can see.
+                                // now bin them by app.
+                                var appList, appOwnership;
+                                narratives.forEach(function (narrative) {
+                                    var apps, methods, bin;
+                                    if (narrative.object.metadata.methods) {
+                                        methods = JSON.parse(narrative.object.metadata.methods);
+                                        apps = methods.app;
 
-                        return Promise.try(function () {
-                            var allApps,
-                                appMap = {};
-                            if (!w.runtime.getService('session').isLoggedIn()) {
-                                w.setState('apps', null);
-                                return;
-                            }
-                            return Promise.resolve(methodStore.list_apps_full_info({}))
-                                .then(function (result) {
-                                    allApps = result;
-                                    allApps.forEach(function (x) {
-                                        appMap[x.id] = {
-                                            owned: {
-                                                count: 0,
-                                                narratives: {}
-                                            },
-                                            shared: {
-                                                count: 0,
-                                                narratives: {}
-                                            },
-                                            public: {
-                                                count: 0,
-                                                narratives: {}
-                                            }
-                                        };
-                                    });
-                                    return [allApps, kbService.getNarratives({
-                                            params: {showDeleted: 0}
-                                        })];
-                                })
-                                .spread(function (allApps, narratives) {
-                                    // Now we have all the narratives this user can see.
-                                    // now bin them by app.
-                                    var appList, appOwnership;
-                                    narratives.forEach(function (narrative) {
-                                        var apps, methods, bin;
-                                        if (narrative.object.metadata.methods) {
-                                            methods = JSON.parse(narrative.object.metadata.methods);
-                                            apps = methods.app;
-
-                                            if (narrative.workspace.owner === w.runtime.getService('session').getUsername()) {
-                                                bin = 'owned';
-                                            } else if (narrative.workspace.globalread === 'n') {
-                                                bin = 'shared';
+                                        if (narrative.workspace.owner === this.runtime.service('session').getUsername()) {
+                                            bin = 'owned';
+                                        } else if (narrative.workspace.globalread === 'n') {
+                                            bin = 'shared';
+                                        } else {
+                                            bin = 'public';
+                                        }
+                                        Object.keys(apps).forEach(function (app) {
+                                            // simple object, don't need to check.
+                                            if (!appMap[app]) {
+                                                Logger.logWarning({
+                                                    source: 'AppsWidget',
+                                                    title: 'Skipped App',
+                                                    message: 'The app "' + app + '" was skipped because it is not in the Apps Store'
+                                                });
                                             } else {
-                                                bin = 'public';
+                                                appMap[app][bin].count += 1;
+                                                appMap[app][bin].narratives[narrative.workspace.id] = 1;
                                             }
-                                            Object.keys(apps).forEach(function (app) {
-                                                // simple object, don't need to check.
-                                                if (!appMap[app]) {
-                                                    Logger.logWarning({
-                                                        source: 'AppsWidget',
-                                                        title: 'Skipped App',
-                                                        message: 'The app "' + app + '" was skipped because it is not in the Apps Store'
-                                                    });
-                                                } else {
-                                                    appMap[app][bin].count += 1;
-                                                    appMap[app][bin].narratives[narrative.workspace.id] = 1;
-                                                }
+                                        });
+                                    }
+                                });
+
+                                allApps.forEach(function (x) {
+                                    x.narrativeCount = appMap[x.id];
+                                });
+                                appList = allApps.sort(function (a, b) {
+                                    if (a.name < b.name) {
+                                        return -1;
+                                    }
+                                    if (a.name > b.name) {
+                                        return 1;
+                                    }
+                                    return 0;
+                                });
+                                this.set('appList', appList);
+
+                                // Now twist this and get narrative count per app by ownership category.
+                                appOwnership = {owned: [], shared: [], public: []};
+                                allApps.forEach(function (app) {
+                                    ['owned', 'shared', 'public'].forEach(function (ownerType) {
+                                        if (app.narrativeCount[ownerType].count > 0) {
+                                            appOwnership[ownerType].push({
+                                                count: app.narrativeCount[ownerType].count,
+                                                app: app
                                             });
                                         }
                                     });
-
-                                    allApps.forEach(function (x) {
-                                        x.narrativeCount = appMap[x.id];
-                                    });
-                                    appList = allApps.sort(function (a, b) {
-                                        if (a.name < b.name) {
-                                            return -1;
-                                        }
-                                        if (a.name > b.name) {
-                                            return 1;
-                                        }
-                                        return 0;
-                                    });
-                                    w.setState('appList', appList);
-
-                                    // Now twist this and get narrative count per app by ownership category.
-                                    appOwnership = {owned: [], shared: [], public: []};
-                                    allApps.forEach(function (app) {
-                                        ['owned', 'shared', 'public'].forEach(function (ownerType) {
-                                            if (app.narrativeCount[ownerType].count > 0) {
-                                                appOwnership[ownerType].push({
-                                                    count: app.narrativeCount[ownerType].count,
-                                                    app: app
-                                                });
-                                            }
-                                        });
-                                    });
-                                    w.setState('appOwnership', appOwnership);
                                 });
-                        });
+                                this.set('appOwnership', appOwnership);
+                            });
                     },
-                    render: function (w) {
+                    render: function () {
                         // just test for now...
                         return renderPanel({
                             title: 'KBase Apps',
-                            content: renderData(w)
+                            content: renderData(this)
                         });
                     }
                 },
@@ -271,15 +212,6 @@ define([
                         type: 'mouseenter',
                         selector: 'table.hoverable tr',
                         handler: function (e) {
-//                            var obj = e.currentTarget;
-//                            while (obj !== null) {
-//                                if (obj === this) {
-//                                    return;
-//                                }
-//                                obj = obj.parentNode;
-//                            }
-                            // e.preventDefault();
-                            // e.stopPropagation();
                             e.target.classList.add('-active')
                         },
                         capture: true
@@ -288,13 +220,6 @@ define([
                         type: 'mouseleave',
                         selector: 'table.hoverable tr',
                         handler: function (e) {
-//                            var obj = e.currentTarget;
-//                            while (obj !== null) {
-//                                if (obj === this) {
-//                                    return;
-//                                }
-//                                obj = obj.parentNode;
-//                            }
                             e.target.classList.remove('-active')
                         },
                         capture: true
