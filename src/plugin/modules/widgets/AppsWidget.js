@@ -104,19 +104,19 @@ define([
                         return html.loading();
                     },
                     fetch: function (params) {
-                        var methodStore = new NarrativeMethodStore(this.getConfig('services.narrative_method_store.url'), {
-                            token: this.runtime.service('session').getAuthToken()
+                        var widget = this,
+                            methodStore = new NarrativeMethodStore(widget.getConfig('services.narrative_method_store.url'), {
+                            token: widget.runtime.service('session').getAuthToken()
                         }),
-                            kbService = fServiceApi.make({runtime: this.runtime}),
-                            allApps,
+                            kbService = fServiceApi.make({runtime: widget.runtime}),
                             appMap = {};
-                        if (!this.runtime.service('session').isLoggedIn()) {
-                            this.set('apps', null);
+                        if (!widget.runtime.service('session').isLoggedIn()) {
+                            widget.set('apps', null);
                             return;
                         }
+                        this.set('ready', false);
                         return methodStore.list_apps_full_info({})
-                            .then(function (result) {
-                                allApps = result;
+                            .then(function (allApps) {
                                 allApps.forEach(function (x) {
                                     appMap[x.id] = {
                                         owned: {
@@ -147,7 +147,7 @@ define([
                                         methods = JSON.parse(narrative.object.metadata.methods);
                                         apps = methods.app;
 
-                                        if (narrative.workspace.owner === this.runtime.service('session').getUsername()) {
+                                        if (narrative.workspace.owner === widget.runtime.service('session').getUsername()) {
                                             bin = 'owned';
                                         } else if (narrative.workspace.globalread === 'n') {
                                             bin = 'shared';
@@ -169,6 +169,7 @@ define([
                                         });
                                     }
                                 });
+                                
 
                                 allApps.forEach(function (x) {
                                     x.narrativeCount = appMap[x.id];
@@ -182,7 +183,7 @@ define([
                                     }
                                     return 0;
                                 });
-                                this.set('appList', appList);
+                                widget.set('appList', appList);
 
                                 // Now twist this and get narrative count per app by ownership category.
                                 appOwnership = {owned: [], shared: [], public: []};
@@ -196,11 +197,15 @@ define([
                                         }
                                     });
                                 });
-                                this.set('appOwnership', appOwnership);
+                                widget.set('appOwnership', appOwnership);
+                                widget.set('ready', true);
                             });
                     },
                     render: function () {
                         // just test for now...
+                        if (!this.get('ready')) {
+                            return;
+                        }
                         return renderPanel({
                             title: 'KBase Apps',
                             content: renderData(this)
@@ -212,7 +217,7 @@ define([
                         type: 'mouseenter',
                         selector: 'table.hoverable tr',
                         handler: function (e) {
-                            e.target.classList.add('-active')
+                            e.target.classList.add('-active');
                         },
                         capture: true
                     },
@@ -220,7 +225,7 @@ define([
                         type: 'mouseleave',
                         selector: 'table.hoverable tr',
                         handler: function (e) {
-                            e.target.classList.remove('-active')
+                            e.target.classList.remove('-active');
                         },
                         capture: true
                     }
