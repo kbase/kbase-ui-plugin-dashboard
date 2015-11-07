@@ -269,14 +269,16 @@ define([
                     this.context.params = this.params;
 
                     // HEARTBEAT
+                    
+                    this.refreshEnabled = false;
 
                     // refreshBeat is a one minute (or whatever) approximate timer for 
                     // refreshing more expensive data.
-                    // this.refreshBeat = 0;
+                    // this.refreshBeat = 60000;
                     //
                     // If we don't define these, then refreshing is disabled.
-                    // this.refreshInterval = null;
-                    // this.refreshLastTime = null;
+                    this.refreshInterval = 60000;
+                    this.refreshLastTime = null;
 
 
                     // STATUS
@@ -412,15 +414,15 @@ define([
             },
             handleHeartbeat: {
                 value: function (data) {
-                    if (this.refreshInterval !== undefined) {
+                    if (this.refreshEnabled) {
                         var now = (new Date()).getTime();
                         if (!this.refreshLastTime) {
                             this.refreshLastTime = now;
                         }
                         if (now - this.refreshLastTime >= this.refreshInterval) {
                             if (this.onRefreshbeat) {
-                                this.onRefreshbeat(data);
                                 this.refreshLastTime = now;
+                                this.onRefreshbeat(data);
                             }
                         }
                     }
@@ -431,42 +433,28 @@ define([
             },
             onHeartbeat: {
                 value: function (data) {
-                    if (this.status === 'dirty') {
-                        // make sure the flag is reset syncronously.
-                        // If we reset the flag in refresh().then(), as we 
-                        // did at one time, there is race condition -- another
-                        // heartbeat may occur during the refresh handling and 
-                        // trigger a second refresh (since the widget is still 
-                        // dirty.)
-                        this.status = 'clean';
-                        this.refresh()
-                            .then(function () {
-                                // anything
-                            }.bind(this))
-                            .catch(function (err) {
-                                this.setError(err);
-                            }.bind(this))
-                            .done();
-                    } else if (this.status === 'error') {
-                        this.status = 'errorshown';
-                        this.refresh()
-                            .then(function () {
-                                // anything to do?
-                            }.bind(this))
-                            .catch(function (err) {
-                                this.setError(err);
-                            }.bind(this))
-                            .done();
+                    switch (this.status) {
+                        case 'dirty':
+                            this.status = 'clean';
+                            this.refresh()
+                                .catch(function (err) {
+                                    this.setError(err);                            
+                                });
+                            break;
+                        case 'error':
+                            this.status = 'errorshown';
+                            this.renderError();
+                            break;                        
                     }
                 }
             },
             onRefreshbeat: {
                 value: function () {
+                    console.log('REFRESHBEAT');
                     this.setInitialState()
                         .catch(function (err) {
                             this.setError(err);
-                        }.bind(this))
-                        .done();
+                        }.bind(this));
                     return this;
                 }
             },
@@ -655,7 +643,6 @@ define([
                     })
                         .then(function () {
                             this.status = 'dirty';
-                            // this.refresh();
                         }.bind(this))
                         .catch(function (err) {
                             this.setError(err);
@@ -736,7 +723,6 @@ define([
                 value: function (errorObj) {
                     // Very simple error view.
                     if (errorObj) {
-                        var errorText;
                         if (typeof errorObj === 'string') {
                             var error = {
                                 title: 'Error', message: errorObj
@@ -779,19 +765,12 @@ define([
             render: {
                 value: function () {
                     try {
-                        if (this.status === 'error' || this.error) {
-                            this.renderError();
-                        } else if (this.runtime.getService('session').isLoggedIn()) {
-                            //if (this.initialStateSet) {
+                        if (this.runtime.getService('session').isLoggedIn()) {
                             this.setTitle(this.widgetTitle);
                             this.places.content.html(this.renderTemplate('authorized'));
-                            //}
                         } else {
-                            //if (this.initialStateSet) {
-                            // no profile, no basic aaccount info
                             this.setTitle(this.widgetTitle);
                             this.places.content.html(this.renderTemplate('unauthorized'));
-                            //}
                         }
                         if (this.afterRender) {
                             this.afterRender();
