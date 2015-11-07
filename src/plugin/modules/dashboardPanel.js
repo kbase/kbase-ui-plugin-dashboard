@@ -80,6 +80,9 @@ define([
             function start(params) {
                 return widgetSet.start(params);
             }
+            function run(params) {
+                return widgetSet.run(params);
+            }
             function stop() {
                 return widgetSet.stop();
             }
@@ -89,6 +92,7 @@ define([
             return {
                 attach: attach,
                 start: start,
+                run: run,
                 stop: stop,
                 detach: detach
             };
