@@ -9,7 +9,7 @@ define([
     'jquery', 
     'kb_dashboard_widget_base', 
     'kb_service_api', 
-    'kb_widget_buttonBar', 
+    'kb/widget/widgets/buttonBar', 
     'bluebird', 
     'bootstrap'
 ],

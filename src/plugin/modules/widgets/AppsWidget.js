@@ -6,7 +6,7 @@ define([
     'kb_service_api',
     'kb/common/logger',
     'kb/common/html',
-    'kb_widgetBases_dataWidget',
+    'kb/widget/bases/dataWidget',
     'bootstrap'
 ],
     function (Promise, NarrativeMethodStore, fServiceApi, Logger, html, DataWidget) {
