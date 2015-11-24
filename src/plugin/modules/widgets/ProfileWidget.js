@@ -1,7 +1,7 @@
 define([
     'promise',
     'kb_dashboard_widget_base',
-    'kb_common_utils'
+    'kb/common/utils'
 ],
     function (Promise, DashboardWidget, Utils) {
         'use strict';

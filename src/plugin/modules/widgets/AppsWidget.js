@@ -4,8 +4,8 @@ define([
     'bluebird',
     'kb_service_narrativeMethodStore',
     'kb_service_api',
-    'kb_common_logger',
-    'kb_common_html',
+    'kb/common/logger',
+    'kb/common/html',
     'kb_widgetBases_dataWidget',
     'bootstrap'
 ],

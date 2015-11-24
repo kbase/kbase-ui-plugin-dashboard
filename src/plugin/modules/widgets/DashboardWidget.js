@@ -2,11 +2,11 @@ define([
     'nunjucks', 
     'jquery',
     'bluebird', 
-    'kb_common_html',
-    'kb_common_utils', 
+    'kb/common/html',
+    'kb/common/utils', 
     'kb_userprofile_userProfile', 
-    'kb_common_logger',
-    'kb_common_gravatar',
+    'kb/common/logger',
+    'kb/common/gravatar',
     'kb_plugin_dashboard'
 ],
     function (nunjucks, $, Promise, html, Utils, UserProfile, Logger, gravatar, Plugin) {
