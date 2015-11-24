@@ -2,7 +2,7 @@
 /*jslint white: true */
 define([
     'bluebird',
-    'kb/service/client/narrativeMethodStore',
+    'kb/service/client/NarrativeMethodStore',
     'kb/service/serviceApi',
     'kb/common/logger',
     'kb/common/html',
