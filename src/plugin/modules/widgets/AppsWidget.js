@@ -2,8 +2,8 @@
 /*jslint white: true */
 define([
     'bluebird',
-    'kb_service_narrativeMethodStore',
-    'kb_service_api',
+    'kb/service/client/narrativeMethodStore',
+    'kb/service/serviceApi',
     'kb/common/logger',
     'kb/common/html',
     'kb/widget/bases/dataWidget',
