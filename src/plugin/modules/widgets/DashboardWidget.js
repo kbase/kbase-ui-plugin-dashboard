@@ -98,8 +98,8 @@ define([
                     //   /src/widgets/WIDGETNAME/templates
                     this.templates = {};
                     var loaders = [                        
-                        new nunjucks.WebLoader(Plugin.plugin.path + '/' + this.widgetName + '/templates', true),
-                        new nunjucks.WebLoader(Plugin.plugin.path + '/DashboardWidget/templates', true)
+                        new nunjucks.WebLoader(Plugin.plugin.fullPath + '/' + this.widgetName + '/templates', true),
+                        new nunjucks.WebLoader(Plugin.plugin.fullPath + '/DashboardWidget/templates', true)
                     ];
                     this.templates.env = new nunjucks.Environment(loaders, {
                         'autoescape': false
