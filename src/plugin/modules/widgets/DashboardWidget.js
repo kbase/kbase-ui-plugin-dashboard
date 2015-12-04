@@ -4,7 +4,7 @@ define([
     'bluebird', 
     'kb/common/html',
     'kb/common/utils', 
-    'kb_userprofile_userProfile', 
+    'kb/service/userProfile', 
     'kb/common/logger',
     'kb/common/gravatar',
     'kb_plugin_dashboard'
