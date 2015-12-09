@@ -187,14 +187,14 @@ define([
             },
             setInitialState: {
                 value: function (options) {
-                    return new Promise(function (resolve, reject) {
+                    return Promise.try(function () {
                         if (!this.runtime.getService('session').isLoggedIn()) {
                             // ensure that all state is zapped.
                             this.deleteState();
                             resolve();
-                            return;
                         }
-                        Promise.all([this.kbservice.getNarratives({
+                        return Promise.all(
+                            [this.kbservice.getNarratives({
                                 params: {
                                     showDeleted: 0,
                                     owners: [this.runtime.getService('session').getUsername()]
@@ -226,27 +226,17 @@ define([
                                 if (narratives.length === 0) {
                                     this.setState('narratives', []);
                                     this.setState('narrativesFiltered', []);
-                                    resolve();
                                 } else {
-                                    this.kbservice.getPermissions(narratives)
+                                    return this.kbservice.getPermissions(narratives)
                                         .then(function (narratives) {
                                             narratives = narratives.sort(function (a, b) {
                                                 return b.object.saveDate.getTime() - a.object.saveDate.getTime();
                                             });
                                             this.setState('narratives', narratives);
                                             this.filterNarratives();
-                                            resolve();
                                         }.bind(this))
-                                        .catch(function (err) {
-                                            reject(err);
-                                        });
                                 }
-                            }.bind(this))
-                            .catch(function (err) {
-                                // this.viewState.setError('narratives', new Error('Error getting Narratives'));
-                                reject(err);
-                            }.bind(this))
-                            .done();
+                            }.bind(this));
                     }.bind(this));
                 }
             }
