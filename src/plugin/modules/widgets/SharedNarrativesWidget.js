@@ -149,11 +149,10 @@ define([
             },
             setInitialState: {
                 value: function (options) {
-                    return new Promise(function (resolve, reject, notify) {
+                    return Promise.try(function () {
                         // Get all workspaces, filter out those owned by the user,
                         // and those that are public
-
-                        Promise.all([this.kbservice.getNarratives({
+                        return Promise.all([this.kbservice.getNarratives({
                                 params: {
                                     showDeleted: 0,
                                 }
@@ -164,7 +163,6 @@ define([
                                 var narratives = result[0];
                                 var apps = result[1];
                                 var methods = result[2];
-
 
                                 this.setState('apps', apps);
                                 var appsMap = {};
@@ -183,7 +181,6 @@ define([
 
                                 if (narratives.length === 0) {
                                     this.setState('narratives', []);
-                                    resolve();
                                     return;
                                 }
 
@@ -199,25 +196,15 @@ define([
                                     }
                                 }.bind(this));
 
-                                this.kbservice.getPermissions(narratives)
+                                return this.kbservice.getPermissions(narratives)
                                     .then(function (narratives) {
                                         narratives = narratives.sort(function (a, b) {
                                             return b.object.saveDate.getTime() - a.object.saveDate.getTime();
                                         });
                                         this.setState('narratives', narratives);
                                         this.filterState();
-
-                                        resolve();
-                                    }.bind(this))
-                                    .catch(function (err) {
-                                        console.log('ERROR');
-                                        console.log(err);
-                                        reject(err);
-                                    });
-                            }.bind(this))
-                            .catch(function (err) {
-                                reject(err);
-                            });
+                                    }.bind(this));
+                            }.bind(this));
                     }.bind(this));
                 }
             }
