@@ -249,8 +249,6 @@ define([
                                         });
                                         this.setState('narratives', narratives);
                                         this.setState('narrativesFiltered', narratives);
-
-                                        resolve();
                                     }.bind(this));
                             }.bind(this));
                     }.bind(this));
