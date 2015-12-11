@@ -468,7 +468,9 @@ define([
             },
             renderUI: {
                 value: function () {
-                    this.loadCSS();
+                    // No longer necessary -- the plugin config for the widget can
+                    // specify whether a css should be loaded.
+                    // this.loadCSS();
                     this.renderLayout();
                     return this;
                 }
@@ -826,6 +828,9 @@ define([
             },
             loadCSSResource: {
                 value: function (url) {
+                    if (!this.haveCss) {
+                        return;
+                    }
                     if (!this.cssLoaded) {
                         this.cssLoaded = {};
                     }
