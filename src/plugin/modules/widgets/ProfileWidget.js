@@ -68,11 +68,13 @@ define([
             },
             calcProfileCompletion: {
                 value: function (profile) {
-                    var completion = profile.calcProfileCompletion();
-                    if (completion.status === 'complete') {
-                        return null;
-                    } else {
-                        return completion;
+                    if (profile) {
+                        var completion = profile.calcProfileCompletion();
+                        if (completion.status === 'complete') {
+                            return null;
+                        } else {
+                            return completion;
+                        }
                     }
                 }
             },
