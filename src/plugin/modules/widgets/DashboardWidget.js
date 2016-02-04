@@ -256,6 +256,7 @@ define([
                     // The context object is what is given to templates.
                     this.context = {};
                     this.context.env = {
+                        pluginPath: Plugin.plugin.fullPath,
                         widgetTitle: this.widgetTitle,
                         widgetName: this.widgetName,
                         docsite: this.runtime.getConfig('docsite'),
