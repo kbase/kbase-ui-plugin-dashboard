@@ -188,20 +188,19 @@ define([
             setInitialState: {
                 value: function (options) {
                     return Promise.try(function () {
-                        if (!this.runtime.getService('session').isLoggedIn()) {
+                        if (!this.runtime.service('session').isLoggedIn()) {
                             // ensure that all state is zapped.
                             this.deleteState();
-                            resolve();
                         }
                         return Promise.all(
                             [this.kbservice.getNarratives({
-                                params: {
-                                    showDeleted: 0,
-                                    owners: [this.runtime.getService('session').getUsername()]
-                                }
-                            }),
-                            this.kbservice.getApps(),
-                            this.kbservice.getMethods()])
+                                    params: {
+                                        showDeleted: 0,
+                                        owners: [this.runtime.getService('session').getUsername()]
+                                    }
+                                }),
+                                this.kbservice.getApps(),
+                                this.kbservice.getMethods()])
                             .spread(function (narratives, apps, methods) {
                                 // Set the apps as state, and then create a map of app names to app spec.
                                 this.setState('apps', apps);
