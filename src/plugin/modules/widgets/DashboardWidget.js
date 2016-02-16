@@ -1,15 +1,18 @@
+/*global define*/
+/*jslint white:true,browser:true */
 define([
     'nunjucks', 
     'jquery',
     'bluebird', 
     'kb/common/html',
     'kb/common/utils', 
-    'kb/service/userProfile', 
+    'kb/service/serviceApi',
+    'kb/service/client/narrativeMethodStore',
     'kb/common/logger',
     'kb/common/gravatar',
     'kb_plugin_dashboard'
 ],
-    function (nunjucks, $, Promise, html, Utils, UserProfile, Logger, gravatar, Plugin) {
+    function (nunjucks, $, Promise, html, Utils, ServiceApi, NarrativeMethodStore, Logger, gravatar, Plugin) {
         "use strict";
         var DashboardWidget = Object.create({}, {
             // The init function interfaces this object with the caller, and sets up any 
@@ -88,7 +91,7 @@ define([
                     this.stateMeta = {
                         status: 'none',
                         timestamp: new Date()
-                    }
+                    };
 
                     // Creates maps out of lists.
                     this.createListMaps();
@@ -107,36 +110,33 @@ define([
                     this.templates.env.addFilter('roleLabel', function (role) {
                         if (this.listMaps['userRoles'][role]) {
                             return this.listMaps['userRoles'][role].label;
-                        } else {
-                            return role;
-                        }
+                        } 
+                        return role;
                     }.bind(this));
                     this.templates.env.addFilter('userClassLabel', function (userClass) {
                         if (this.listMaps['userClasses'][userClass]) {
                             return this.listMaps['userClasses'][userClass].label;
-                        } else {
-                            return userClass;
                         }
+                        return userClass;
                     }.bind(this));
                     this.templates.env.addFilter('titleLabel', function (title) {
                         if (this.listMaps['userTitles'][title]) {
                             return this.listMaps['userTitles'][title].label;
-                        } else {
-                            return title;
-                        }
+                        } 
+                        return title;
                     }.bind(this));
                     this.templates.env.addFilter('permissionLabel', function (permissionFlag) {
                         if (this.listMaps['permissionFlags'][permissionFlag]) {
                             return this.listMaps['permissionFlags'][permissionFlag].label;
-                        } else {
-                            return permissionFlag;
                         }
+                        return permissionFlag;
                     }.bind(this));
                     this.templates.env.addFilter('length2', function (x) {
                         if (x) {
                             if (x instanceof Array) {
                                 return x.length;
-                            } else if (x instanceof Object) {
+                            }
+                            if (x instanceof Object) {
                                 return Object.keys(x).length;
                             }
                         }
@@ -223,10 +223,10 @@ define([
                                     b = b[prop];
                                 }
                                 if (a < b) {
-                                    return 1;
+                                    return -1;
                                 }
                                 if (a > b) {
-                                    return -1;
+                                    return 1;
                                 }
                                 return 0;
                             });
@@ -352,6 +352,134 @@ define([
                 }
             },
             
+            // Commonly used data access and munging methods
+            getMethods: {
+                value: function () {
+                    var methodStore = new NarrativeMethodStore(this.runtime.getConfig('services.narrative_method_store.url'), {
+                        token: this.runtime.service('session').getAuthToken()
+                    });
+                    return Promise.all([
+                        methodStore.list_methods({tag: 'dev'}),
+                        methodStore.list_methods({tag: 'beta'}),
+                        methodStore.list_methods({tag: 'release'})
+                    ])
+                        .spread(function (devMethods, betaMethods, releaseMethods) {
+                            var methodMap = {};
+                            releaseMethods.forEach(function (method) {
+                                methodMap[method.id] = method;
+                            });
+                            betaMethods.forEach(function (method) {
+                                if (!methodMap[method.id]) {
+                                    methodMap[method.id] = method;
+                                }
+                            });
+                            devMethods.forEach(function (method) {
+                                if (!methodMap[method.id]) {
+                                    methodMap[method.id] = method;
+                                }
+                            });
+                            this.setState('methodsMap', methodMap);
+                            return methodMap;
+                        }.bind(this));
+                }
+            },
+            getApps: {
+                value: function () {
+                    var methodStore = new NarrativeMethodStore(this.runtime.getConfig('services.narrative_method_store.url'), {
+                        token: this.runtime.service('session').getAuthToken()
+                    });
+                    return Promise.all([
+                        methodStore.list_apps({tag: 'dev'}),
+                        methodStore.list_apps({tag: 'beta'}),
+                        methodStore.list_apps({tag: 'release'})
+                    ])
+                        .spread(function (dev, beta, release) {
+                            var appMap = {};
+                            release.forEach(function (method) {
+                                appMap[method.id] = method;
+                            });
+                            beta.forEach(function (method) {
+                                if (!appMap[method.id]) {
+                                    appMap[method.id] = method;
+                                }
+                            });
+                            dev.forEach(function (method) {
+                                if (!appMap[method.id]) {
+                                    appMap[method.id] = method;
+                                }
+                            });
+                            this.setState('appsMap', appMap);
+                            return appMap;
+                        }.bind(this));
+                }
+            },
+            getNarratives: {
+                value: function (params, filter) {
+                    return Promise.all([
+                        this.kbservice.getNarratives({
+                            params: params
+                        }),
+                        this.getApps(),
+                        this.getMethods()
+                    ])
+                        .spread(function (narratives, appsMap, methodsMap) {
+                            if (narratives.length === 0) {
+                                this.setState('narratives', []);
+                                return;
+                            }
+                           
+
+                            narratives.forEach(function (narrative) {
+                                narrative.methods = narrative.methods.map(function (method) {
+                                    var name,
+                                        methodInfo = methodsMap[method];
+                                    if (methodInfo) {
+                                        name = methodInfo.name;
+                                    } else {
+                                        name = '*' + method;
+                                    }
+                                    return {
+                                        id: method,
+                                        name: name
+                                    };
+                                    // return name;
+                                });
+                                narrative.apps = narrative.apps.map(function (app) {
+                                    var name,
+                                        appInfo = appsMap[app];
+                                    if (appInfo) {
+                                        name = appInfo.name;
+                                    } else {
+                                        name = '*' + app;
+                                    }
+                                    return {
+                                        id: app,
+                                        name: name
+                                    };
+                                });
+                            });
+
+                            return this.kbservice.getPermissions(narratives);
+                        }.bind(this))
+                        .then(function (narratives) {
+                            return narratives.sort(function (a, b) {
+                                return b.object.saveDate.getTime() - a.object.saveDate.getTime();
+                            });
+                        });
+                }
+            },
+            getAppName: {
+                value: function (name) {
+                    return this.getState(['appsMap', name, 'name'], name);
+                }
+            },
+            getMethodName: {
+                value: function (name) {
+                    return this.getState(['methodsMap', name, 'name'], name);
+                }
+            },
+
+            
             // LIFECYCLE
 
             go: {
@@ -451,7 +579,6 @@ define([
             },
             onRefreshbeat: {
                 value: function () {
-                    console.log('REFRESHBEAT');
                     this.setInitialState()
                         .catch(function (err) {
                             this.setError(err);
@@ -463,6 +590,7 @@ define([
                 value: function () {
                     // does whatever the widget needs to do to set itself up
                     // after config, params, and auth have been configured.
+                    this.kbservice = ServiceApi.make({runtime: this.runtime});
 
                     return this;
                 }
