@@ -6,14 +6,13 @@
  white: true
  */
 define([
-    'jquery', 
-    'kb_dashboard_widget_base', 
-    'kb/service/serviceApi', 
-    'kb/widget/widgets/buttonBar', 
-    'bluebird', 
+    'jquery',
+    'kb_dashboard_widget_base',
+    'kb/widget/widgets/buttonBar',
+    'bluebird',
     'bootstrap'
 ],
-    function ($, DashboardWidget, ServiceApi, Buttonbar, Promise) {
+    function ($, DashboardWidget, Buttonbar, Promise) {
         "use strict";
         var widget = Object.create(DashboardWidget, {
             init: {
@@ -26,18 +25,6 @@ define([
                     this.params.limit = 10;
 
                     this.view = 'slider';
-                    this.templates.env.addFilter('appName', function (x) {
-                        return this.getState(['appsMap', x, 'name'], x);
-                    }.bind(this));
-                    this.templates.env.addFilter('methodName', function (x) {
-                        return this.getState(['methodsMap', x, 'name'], x);
-                    }.bind(this));
-                    return this;
-                }
-            },
-            setup: {
-                value: function () {
-                    this.kbservice = ServiceApi.make({runtime: this.runtime});
                 }
             },
             getAppName: {
@@ -86,8 +73,8 @@ define([
                         this.places.content.html(this.renderTemplate('unauthorized'));
                         //}
                     }
-                        this.container.find('[data-toggle="popover"]').popover();
-                        this.container.find('[data-toggle="tooltip"]').tooltip();
+                    this.container.find('[data-toggle="popover"]').popover();
+                    this.container.find('[data-toggle="tooltip"]').tooltip();
                     return this;
                 }
             },
@@ -147,65 +134,44 @@ define([
                     });
                 }
             },
+            getAppsx: {
+                value: function () {
+                    var methodStore = new NarrativeMethodStore(this.runtime.getConfig('services.narrative_method_store.url'), {
+                        token: this.runtime.service('session').getAuthToken()
+                    });
+                    return Promise.all([
+                        methodStore.list_apps({}),
+                    ])
+                        .spread(function (apps) {
+                            var appMap = {};
+                            apps.forEach(function (app) {
+                                appMap[app.id] = app;
+                            });
+                            return appMap;
+                        });
+                }
+            },
             setInitialState: {
                 value: function (options) {
-                    return Promise.try(function () {
-                        // Get all workspaces, filter out those owned by the user,
-                        // and those that are public
-                        return Promise.all([this.kbservice.getNarratives({
-                                params: {
-                                    showDeleted: 0,
-                                }
-                            }),
-                            this.kbservice.getApps(),
-                            this.kbservice.getMethods()])
-                            .then(function (result) {
-                                var narratives = result[0];
-                                var apps = result[1];
-                                var methods = result[2];
 
-                                this.setState('apps', apps);
-                                var appsMap = {};
-                                apps.forEach(function (app) {
-                                    appsMap[app.id] = app;
-                                });
-                                this.setState('appsMap', appsMap);
-
-                                this.setState('methods', methods);
-                                var methodsMap = {};
-                                methods.forEach(function (method) {
-                                    methodsMap[method.id] = method;
-                                });
-                                this.setState('methodsMap', methodsMap);
-
-
-                                if (narratives.length === 0) {
-                                    this.setState('narratives', []);
-                                    return;
-                                }
-
-                                // TODO: move this into getNarratives (the hook is there, just not implemented)
-                                // filter out those owned, and those which we don't have
-                                // view or write permission for
-                                narratives = narratives.filter(function (x) {
-                                    if (x.workspace.owner === this.runtime.getService('session').getUsername() ||
-                                        x.workspace.user_permission === 'n') {
+                    return this.getNarratives({
+                        showDeleted: 0
+                    })
+                        .then(function (narratives) {
+                            var username = this.runtime.getService('session').getUsername();
+                            narratives = narratives
+                                .filter(function (narrative) {
+                                    if (narrative.workspace.owner === username ||
+                                        narrative.workspace.user_permission === 'n') {
                                         return false;
-                                    } else {
-                                        return true;
                                     }
+                                    return true;
                                 }.bind(this));
+                            
+                            this.setState('narratives', narratives);
+                            this.filterState();
+                        }.bind(this));
 
-                                return this.kbservice.getPermissions(narratives)
-                                    .then(function (narratives) {
-                                        narratives = narratives.sort(function (a, b) {
-                                            return b.object.saveDate.getTime() - a.object.saveDate.getTime();
-                                        });
-                                        this.setState('narratives', narratives);
-                                        this.filterState();
-                                    }.bind(this));
-                            }.bind(this));
-                    }.bind(this));
                 }
             }
         });

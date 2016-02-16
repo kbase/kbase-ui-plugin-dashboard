@@ -33,10 +33,10 @@ define([
                                         })}),
                                     div({id: widgetSet.addWidget('dashboardPublicNarratives', {
                                             viewState: viewState
-                                        })}),
-                                    div({id: widgetSet.addWidget('dashboardApps', {
-                                            viewState: viewState
                                         })})
+                                    //div({id: widgetSet.addWidget('dashboardApps', {
+                                    //        viewState: viewState
+                                    //    })})
                                 ]),
                                 div({class: 'col-sm-4'}, [
                                     div({id: widgetSet.addWidget('dashboardProfile', {

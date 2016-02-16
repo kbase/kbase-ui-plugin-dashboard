@@ -8,12 +8,11 @@
 define([
     'jquery',
     'kb_dashboard_widget_base',
-    'kb/service/serviceApi',
     'kb/widget/widgets/buttonBar',
     'bluebird',
     'bootstrap'
 ],
-    function ($, DashboardWidget, ServiceApi, Buttonbar, Promise) {
+    function ($, DashboardWidget, Buttonbar, Promise) {
         "use strict";
         var widget = Object.create(DashboardWidget, {
             init: {
@@ -26,13 +25,6 @@ define([
                     this.params.limit = 10;
 
                     this.view = 'slider';
-                    this.templates.env.addFilter('appName', function (x) {
-                        return this.getState(['appsMap', x, 'name'], x);
-                    }.bind(this));
-                    this.templates.env.addFilter('methodName', function (x) {
-                        return this.getState(['methodsMap', x, 'name'], x);
-                    }.bind(this));
-                    return this;
                 }
             },
             getAppName: {
@@ -43,11 +35,6 @@ define([
             getMethodName: {
                 value: function (name) {
                     return this.getState(['methodsMap', name, 'name'], name);
-                }
-            },
-            setup: {
-                value: function () {
-                    this.kbservice = ServiceApi.make({runtime: this.runtime});
                 }
             },
             renderLayout: {
@@ -191,67 +178,24 @@ define([
             },
             setInitialState: {
                 value: function (options) {
-                    return Promise.try(function () {
-                        // Get all workspaces, filter out those owned by the user,
-                        // and those that are public
-                        if (!this.runtime.getService('session').isLoggedIn()) {
-                            return;
-                        }
-                        return Promise.all([this.kbservice.getNarratives({
-                                params: {
-                                    showDeleted: 0,
-                                    excludeGlobal: 0
-                                }
-                            }),
-                            this.kbservice.getApps(),
-                            this.kbservice.getMethods()])
-                            .then(function (result) {
-                                var narratives = result[0];
-                                var apps = result[1];
-                                var methods = result[2];
-
-                                this.setState('apps', apps);
-                                var appsMap = {};
-                                apps.forEach(function (app) {
-                                    appsMap[app.id] = app;
-                                });
-                                this.setState('appsMap', appsMap);
-
-                                this.setState('methods', methods);
-                                var methodsMap = {};
-                                methods.forEach(function (method) {
-                                    methodsMap[method.id] = method;
-                                });
-                                this.setState('methodsMap', methodsMap);
-
-                                if (narratives.length === 0) {
-                                    this.setState('narratives', []);
-                                    return;
-                                }
-
-                                // TODO: move this into getNarratives (the hook is there, just not implemented)
-                                // filter out those owned by the user, and those which also have some sharing
-                                // permission ('n' in this case means "no sharing permission" not "no permission"
-                                // because clearly globally shared narratives carrry that permission to everyone!)
-                                narratives = narratives.filter(function (x) {
-                                    if (x.workspace.owner === this.runtime.getService('session').getUsername() ||
+                    return this.getNarratives({
+                        showDeleted: 0,
+                        excludeGlobal: 0
+                    })
+                        .then(function (narratives) {
+                            var username = this.runtime.getService('session').getUsername();
+                            narratives = narratives.filter(function (x) {
+                                    if (x.workspace.owner === username ||
                                         x.workspace.user_permission !== 'n') {
                                         return false;
                                     } else {
                                         return true;
                                     }
                                 }.bind(this));
-
-                                return this.kbservice.getPermissions(narratives)
-                                    .then(function (narratives) {
-                                        narratives = narratives.sort(function (a, b) {
-                                            return b.object.saveDate.getTime() - a.object.saveDate.getTime();
-                                        });
-                                        this.setState('narratives', narratives);
-                                        this.setState('narrativesFiltered', narratives);
-                                    }.bind(this));
-                            }.bind(this));
-                    }.bind(this));
+                            
+                            this.setState('narratives', narratives);
+                            this.setState('narrativesFiltered', narratives);
+                        }.bind(this));
                 }
             }
         });
