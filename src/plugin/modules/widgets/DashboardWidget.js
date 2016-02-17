@@ -1,11 +1,11 @@
 /*global define*/
 /*jslint white:true,browser:true */
 define([
-    'nunjucks', 
+    'nunjucks',
     'jquery',
-    'bluebird', 
+    'bluebird',
     'kb/common/html',
-    'kb/common/utils', 
+    'kb/common/utils',
     'kb/service/serviceApi',
     'kb/service/client/narrativeMethodStore',
     'kb/common/logger',
@@ -38,7 +38,7 @@ define([
                     // Note that params may change. E.g. the user may select another 
                     // member profile to view.
                     this.params = {};
-                    
+
                     this.runtime = cfg.runtime;
                     if (!this.runtime) {
                         throw {
@@ -47,7 +47,7 @@ define([
                             message: 'The runtime is required for a dashboard widget.'
                         };
                     }
-                    
+
                     this.container = cfg.container;
 
                     // Also the userId is required -- this is the user for whom the social widget is concerning.
@@ -100,7 +100,7 @@ define([
                     // NB the templating requires a dedicated widget resources directory in 
                     //   /src/widgets/WIDGETNAME/templates
                     this.templates = {};
-                    var loaders = [                        
+                    var loaders = [
                         new nunjucks.WebLoader(Plugin.plugin.fullPath + '/' + this.widgetName + '/templates', true),
                         new nunjucks.WebLoader(Plugin.plugin.fullPath + '/DashboardWidget/templates', true)
                     ];
@@ -110,7 +110,7 @@ define([
                     this.templates.env.addFilter('roleLabel', function (role) {
                         if (this.listMaps['userRoles'][role]) {
                             return this.listMaps['userRoles'][role].label;
-                        } 
+                        }
                         return role;
                     }.bind(this));
                     this.templates.env.addFilter('userClassLabel', function (userClass) {
@@ -122,7 +122,7 @@ define([
                     this.templates.env.addFilter('titleLabel', function (title) {
                         if (this.listMaps['userTitles'][title]) {
                             return this.listMaps['userTitles'][title].label;
-                        } 
+                        }
                         return title;
                     }.bind(this));
                     this.templates.env.addFilter('permissionLabel', function (permissionFlag) {
@@ -245,7 +245,7 @@ define([
                     this.templates.env.addGlobal('randomNumber', function (from, to) {
                         return Math.floor(from + Math.random() * (to - from));
                     });
-                    
+
                     this.templates.env.addGlobal('getConfig', function (prop) {
                         return this.runtime.getConfig(prop);
                     }.bind(this));
@@ -270,7 +270,7 @@ define([
                     this.context.params = this.params;
 
                     // HEARTBEAT
-                    
+
                     this.refreshEnabled = false;
 
                     // refreshBeat is a one minute (or whatever) approximate timer for 
@@ -348,11 +348,11 @@ define([
             },
             setupAuth: {
                 value: function () {
-                    
+
                 }
             },
-            
             // Commonly used data access and munging methods
+           
             getMethods: {
                 value: function () {
                     var methodStore = new NarrativeMethodStore(this.runtime.getConfig('services.narrative_method_store.url'), {
@@ -415,6 +415,12 @@ define([
             },
             getNarratives: {
                 value: function (params, filter) {
+                    var methodStore = new NarrativeMethodStore(this.runtime.getConfig('services.narrative_method_store.url'), {
+                        token: this.runtime.service('session').getAuthToken()
+                    }),
+                        cachedMethods = {},
+                        t = html.tag,
+                        span = t('span');
                     return Promise.all([
                         this.kbservice.getNarratives({
                             params: params
@@ -425,34 +431,161 @@ define([
                         .spread(function (narratives, appsMap, methodsMap) {
                             if (narratives.length === 0) {
                                 this.setState('narratives', []);
-                                return [];
+                                return [[]];
                             }
 
+                            // Loop through narratives, fetching the method info for each method found.
+                            var methodQueries = [];
                             narratives.forEach(function (narrative) {
-                                narrative.methods = narrative.methods.map(function (method) {
-                                    var name,
-                                        methodInfo = methodsMap[method];
-                                    if (methodInfo) {
-                                        name = methodInfo.name;
-                                    } else {
-                                        name = '*' + method;
-                                    }
-                                    return {
-                                        id: method,
-                                        name: name
-                                    };
-                                    // return name;
-                                });
+                                if (narrative.methods.length > 0) {
+                                    methodQueries.push(Promise.all(narrative.methods.map(function (method, index) {
+                                        var id, tag, legacy = false;
+                                        if (method.module) {
+                                            id = [method.module, method.id].join('/');
+                                        } else {
+                                            legacy = true;
+                                            id = method.id;
+                                        }
+                                        if (method.commitHash) {
+                                            tag = method.commitHash;
+                                            // console.log(tag);
+                                        }
+                                        method.tryId = id;
+                                        var cacheKey;
+                                        if (tag) {
+                                            cacheKey = id + '/' + tag;
+                                        } else {
+                                            cacheKey = id;
+                                        }
+                                        if (cachedMethods[cacheKey]) {
+                                            // console.log('CACHE HIT');
+                                            var methodInfo = cachedMethods[cacheKey];
+                                            var tempMethod = narrative.methods[index];
+                                            tempMethod.methodInfo = methodInfo;
+                                            method.name = methodInfo.name;
+                                            return null;
+                                        }
+
+                                        if (legacy || tag) {
+                                            return methodStore.get_method_brief_info({
+                                                ids: [id],
+                                                tag: tag
+                                            })
+                                                .then(function (methodInfoList) {
+                                                    var methodInfo;
+                                                    if (methodInfoList[0]) {
+                                                        // wrap in array to match the results of promise.some
+                                                        methodInfo = methodInfoList[0];
+                                                        // method = narrative.methods[index];
+                                                        method.methodInfo = methodInfo;
+                                                        method.name = methodInfo.name;
+                                                        // console.log(cacheKey);
+                                                        cachedMethods[cacheKey] = methodInfo;
+
+//                                                        if (tag) {
+//                                                            console.log('** FOUND WITH TAG!', id, tag);
+//                                                        }
+//                                                        if (legacy) {
+//                                                            console.log('** FOUND LEGACY!', id);
+//                                                        }
+
+                                                        return null;
+                                                    }
+                                                    if (tag) {
+                                                        method.name = id;
+                                                        method.view = {
+                                                            title: 'This method could not be located under the original commit hash',
+                                                            state: 'error'                                                            
+                                                        };
+                                                        //console.error('!! TAG not found: ', id, tag);
+                                                    } else {
+                                                        method.name = id;
+                                                        method.view = {
+                                                            title: 'This legacy method could not be located',
+                                                            state: 'error'                                                            
+                                                        };
+                                                        //console.error('!! LEGACY not found: ', id, tag);
+                                                    }
+
+                                                    return null;
+                                                });
+                                        }
+                                        // Try to get by release/beta/dev tag
+                                        return Promise.all([
+                                            methodStore.get_method_brief_info({
+                                                ids: [id], tag: 'release'
+                                            }),
+                                            methodStore.get_method_brief_info({
+                                                ids: [id], tag: 'beta'
+                                            }),
+                                            methodStore.get_method_brief_info({
+                                                ids: [id], tag: 'dev'
+                                            })
+                                        ])
+                                            .spread(function (release, beta, dev) {
+                                                // method = narrative.methods[index];
+                                                var methodInfo;
+                                                if (release[0]) {
+                                                    //console.log('** Got release', id);
+                                                    methodInfo = release[0];
+                                                    method.methodInfo = methodInfo;
+                                                    method.name = methodInfo.name;
+                                                    method.view = {
+                                                        state: 'warning',
+                                                        title: 'Commit hash not available, showing current release version',
+                                                        flag: 'r'
+                                                    };
+                                                    cachedMethods[cacheKey] = methodInfo;
+                                                } else if (beta[0]) {
+                                                    //console.log('** Got beta ', id);
+                                                    methodInfo = beta[0];
+                                                    method.methodInfo = methodInfo;
+                                                    method.name = methodInfo.name;
+                                                    method.view = {
+                                                        state: 'warning',
+                                                        title: 'Commit hash not available, showing current beta version',
+                                                        flag: '&beta;'
+                                                    };
+                                                    cachedMethods[cacheKey] = methodInfo;
+                                                } else if (dev[0]) {
+                                                    //console.log('** Got dev', id);
+                                                    methodInfo = dev[0];
+                                                    method.methodInfo = methodInfo;
+                                                    method.name = methodInfo.name;
+                                                     method.view = {
+                                                        state: 'warning',
+                                                        title: 'Commit hash not available, showing current dev version',
+                                                        flag: 'd'
+                                                    };
+                                                    cachedMethods[cacheKey] = methodInfo;
+                                                } else {
+                                                    var x = html.genId();
+                                                    method.name = span({style: {color: 'orange'}}, '!' + method.id + '(' + x + ')');
+                                                    // console.log('!! Method Not Found', x, method);
+                                                    // cachedMethods[id] = methodInfo;
+                                                }
+                                                return null;
+                                            });
+
+                                    })));
+                                }
+                            });
+                            return Promise.all([narratives, appsMap, Promise.all(methodQueries)]);
+
+                        }.bind(this))
+                        .spread(function (narratives, appsMap) {
+                            narratives.forEach(function (narrative) {
+
                                 narrative.apps = narrative.apps.map(function (app) {
                                     var name,
-                                        appInfo = appsMap[app];
+                                        appInfo = appsMap[app.id];
                                     if (appInfo) {
                                         name = appInfo.name;
                                     } else {
-                                        name = '*' + app;
+                                        name = '*' + app.id;
                                     }
                                     return {
-                                        id: app,
+                                        id: app.id,
                                         name: name
                                     };
                                 });
@@ -477,8 +610,6 @@ define([
                     return this.getState(['methodsMap', name, 'name'], name);
                 }
             },
-
-            
             // LIFECYCLE
 
             go: {
@@ -566,13 +697,13 @@ define([
                             this.status = 'clean';
                             this.refresh()
                                 .catch(function (err) {
-                                    this.setError(err);                            
+                                    this.setError(err);
                                 });
                             break;
                         case 'error':
                             this.status = 'errorshown';
                             this.renderError();
-                            break;                        
+                            break;
                     }
                 }
             },
@@ -754,14 +885,14 @@ define([
                     this.setInitialState({
                         force: true
                     })
-                            .then(function () {
-                                this.status = 'dirty';
-                                // this.refresh();
-                            }.bind(this))
-                            .catch(function (err) {
-                                this.setError(err);
-                            }.bind(this))
-                            .done();
+                        .then(function () {
+                            this.status = 'dirty';
+                            // this.refresh();
+                        }.bind(this))
+                        .catch(function (err) {
+                            this.setError(err);
+                        }.bind(this))
+                        .done();
                 }
             },
             onLoggedOut: {
@@ -1002,9 +1133,9 @@ define([
                                     break;
                             }
                             this.places.alert.append(
-                                    '<div class="alert alert-dismissible alert-' + alertClass + '" role="alert">' +
-                                    '<button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>' +
-                                    '<strong>' + message.title + '</strong> ' + message.message + '</div>');
+                                '<div class="alert alert-dismissible alert-' + alertClass + '" role="alert">' +
+                                '<button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>' +
+                                '<strong>' + message.title + '</strong> ' + message.message + '</div>');
                         }
                     }
                 }
