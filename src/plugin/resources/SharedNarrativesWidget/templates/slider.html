@@ -24,7 +24,7 @@
     {% else %}
 
     {% for narrative in state.narrativesFiltered %}
-    <div class="-card">
+    <div class="-card" id="narrative-{{narrative.object.wsid}}">
         <div class="-title">
             <a target="_blank" href="{{ env.getConfig("services.narrative.url") }}/narrative/{{narrative.object.obj_id}}">{{narrative.workspace.metadata.narrative_nice_name}}</a>
         </div>
@@ -52,7 +52,23 @@
                             <span class="fa fa-inverse fa-stack-1x fa-cube" style=""></span> 
                         </span>
                     </span>
-                    {{method.name}}
+                    {% if method.view %}
+                        {% if method.view.state == 'error' %}
+                            <span style="color: red;" data-toggle="tooltip" data-placement="auto top" data-container=".shared-narratives-slider" title="{{method.view.title}}">
+                                <span class="fa fa-exclamation-circle"</span>  {{method.name}}
+                            </span>                        
+                        {% elif method.view.state == 'warning' %}
+                            <span style="color: orange;" data-toggle="tooltip" data-placement="auto top" data-container=".shared-narratives-slider" title="{{method.view.title}}">
+                                {{method.name}} {% if method.view.flag %} [{{method.view.flag}}] {% endif %}
+                            </span> 
+                        {% else %}
+                            <span  data-toggle="tooltip" data-placement="auto top" data-container="#narrative-{{narrative.object.wsid}}" title="{{method.view.title}}">
+                                {{method.name}}
+                            </span>
+                        {% endif %}
+                    {% else %}                    
+                        {{method.name}}
+                    {% endif %}
                 </div>
                 {% endfor %}
             </div>
