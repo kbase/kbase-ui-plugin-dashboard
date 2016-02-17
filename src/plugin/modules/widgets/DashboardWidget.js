@@ -425,9 +425,8 @@ define([
                         .spread(function (narratives, appsMap, methodsMap) {
                             if (narratives.length === 0) {
                                 this.setState('narratives', []);
-                                return;
+                                return [];
                             }
-                           
 
                             narratives.forEach(function (narrative) {
                                 narrative.methods = narrative.methods.map(function (method) {
