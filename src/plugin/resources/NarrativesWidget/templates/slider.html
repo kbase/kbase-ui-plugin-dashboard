@@ -46,7 +46,23 @@
                             <span class="fa fa-inverse fa-stack-1x fa-cubes" style=""></span> 
                         </span>
                     </span>
-                    {{app.name}}
+                    {% if app.view %}
+                        {% if app.view.state == 'error' %}
+                            <span style="color: red;" data-toggle="tooltip" data-placement="auto top" data-container=".your-narratives-slider" title="{{app.view.title}}">
+                                <span class="fa fa-exclamation-circle"</span>  {{app.name}}
+                            </span>                        
+                        {% elif app.view.state == 'warning' %}
+                            <span style="color: orange;" data-toggle="tooltip" data-placement="auto top" data-container=".your-narratives-slider" title="{{app.view.title}}">
+                                {{app.name}} {% if app.view.flag %} [{{app.view.flag}}] {% endif %}
+                            </span> 
+                        {% else %}
+                            <span  data-toggle="tooltip" data-placement="auto top" data-container="#narrative-{{narrative.object.wsid}}" title="{{app.view.title}}">
+                                {{app.name}}
+                            </span>
+                        {% endif %}
+                    {% else %}                    
+                        {{app.name}}
+                    {% endif %}
                 </div>
                 {% endfor %}
             </div>
