@@ -352,37 +352,8 @@ define([
                 }
             },
             // Commonly used data access and munging methods
-           
-            getMethods: {
-                value: function () {
-                    var methodStore = new NarrativeMethodStore(this.runtime.getConfig('services.narrative_method_store.url'), {
-                        token: this.runtime.service('session').getAuthToken()
-                    });
-                    return Promise.all([
-                        methodStore.list_methods({tag: 'dev'}),
-                        methodStore.list_methods({tag: 'beta'}),
-                        methodStore.list_methods({tag: 'release'})
-                    ])
-                        .spread(function (devMethods, betaMethods, releaseMethods) {
-                            var methodMap = {};
-                            releaseMethods.forEach(function (method) {
-                                methodMap[method.id] = method;
-                            });
-                            betaMethods.forEach(function (method) {
-                                if (!methodMap[method.id]) {
-                                    methodMap[method.id] = method;
-                                }
-                            });
-                            devMethods.forEach(function (method) {
-                                if (!methodMap[method.id]) {
-                                    methodMap[method.id] = method;
-                                }
-                            });
-                            this.setState('methodsMap', methodMap);
-                            return methodMap;
-                        }.bind(this));
-                }
-            },
+
+
             getApps: {
                 value: function () {
                     var methodStore = new NarrativeMethodStore(this.runtime.getConfig('services.narrative_method_store.url'), {
@@ -425,10 +396,9 @@ define([
                         this.kbservice.getNarratives({
                             params: params
                         }),
-                        this.getApps(),
-                        this.getMethods()
+                        this.getApps()
                     ])
-                        .spread(function (narratives, appsMap, methodsMap) {
+                        .spread(function (narratives, appsMap) {
                             if (narratives.length === 0) {
                                 this.setState('narratives', []);
                                 return [[]];
@@ -466,7 +436,29 @@ define([
                                             return null;
                                         }
 
-                                        if (legacy || tag) {
+                                        if (legacy) {
+                                            return methodStore.get_method_brief_info({
+                                                ids: [id]
+                                            })
+                                                .then(function (methodInfoList) {
+                                                    var methodInfo;
+                                                    if (methodInfoList[0]) {
+                                                        methodInfo = methodInfoList[0];
+                                                        method.methodInfo = methodInfo;
+                                                        method.name = methodInfo.name + '[l]';
+                                                        cachedMethods[cacheKey] = methodInfo;
+                                                        return null;
+                                                    }
+                                                    method.name = id;
+                                                    method.view = {
+                                                        title: 'This legacy method could not be located',
+                                                        state: 'error'
+                                                    };
+
+                                                    return null;
+                                                });
+                                        }
+                                        if (tag) {
                                             return methodStore.get_method_brief_info({
                                                 ids: [id],
                                                 tag: tag
@@ -479,33 +471,14 @@ define([
                                                         // method = narrative.methods[index];
                                                         method.methodInfo = methodInfo;
                                                         method.name = methodInfo.name;
-                                                        // console.log(cacheKey);
                                                         cachedMethods[cacheKey] = methodInfo;
-
-//                                                        if (tag) {
-//                                                            console.log('** FOUND WITH TAG!', id, tag);
-//                                                        }
-//                                                        if (legacy) {
-//                                                            console.log('** FOUND LEGACY!', id);
-//                                                        }
-
                                                         return null;
                                                     }
-                                                    if (tag) {
-                                                        method.name = id;
-                                                        method.view = {
-                                                            title: 'This method could not be located under the original commit hash',
-                                                            state: 'error'                                                            
-                                                        };
-                                                        //console.error('!! TAG not found: ', id, tag);
-                                                    } else {
-                                                        method.name = id;
-                                                        method.view = {
-                                                            title: 'This legacy method could not be located',
-                                                            state: 'error'                                                            
-                                                        };
-                                                        //console.error('!! LEGACY not found: ', id, tag);
-                                                    }
+                                                    method.name = id;
+                                                    method.view = {
+                                                        title: 'This method could not be located under the original commit hash',
+                                                        state: 'error'
+                                                    };
 
                                                     return null;
                                                 });
@@ -514,13 +487,31 @@ define([
                                         return Promise.all([
                                             methodStore.get_method_brief_info({
                                                 ids: [id], tag: 'release'
-                                            }),
+                                            })
+                                                .then(function (result) {
+                                                    return result;
+                                                })
+                                                .catch(function () {
+                                                    return [null];
+                                                }),
                                             methodStore.get_method_brief_info({
                                                 ids: [id], tag: 'beta'
-                                            }),
+                                            })
+                                                .then(function (result) {
+                                                    return result;
+                                                })
+                                                .catch(function () {
+                                                    return [null];
+                                                }),
                                             methodStore.get_method_brief_info({
                                                 ids: [id], tag: 'dev'
                                             })
+                                                .then(function (result) {
+                                                    return result;
+                                                })
+                                                .catch(function () {
+                                                    return [null];
+                                                })
                                         ])
                                             .spread(function (release, beta, dev) {
                                                 // method = narrative.methods[index];
@@ -552,17 +543,18 @@ define([
                                                     methodInfo = dev[0];
                                                     method.methodInfo = methodInfo;
                                                     method.name = methodInfo.name;
-                                                     method.view = {
+                                                    method.view = {
                                                         state: 'warning',
                                                         title: 'Commit hash not available, showing current dev version',
                                                         flag: 'd'
                                                     };
                                                     cachedMethods[cacheKey] = methodInfo;
                                                 } else {
-                                                    var x = html.genId();
-                                                    method.name = span({style: {color: 'orange'}}, '!' + method.id + '(' + x + ')');
-                                                    // console.log('!! Method Not Found', x, method);
-                                                    // cachedMethods[id] = methodInfo;
+                                                    method.name = id;
+                                                    method.view = {
+                                                        state: 'error',
+                                                        title: 'Commit hash not available, and cannot find a release, beta or dev version'
+                                                    }
                                                 }
                                                 return null;
                                             });
@@ -575,19 +567,22 @@ define([
                         }.bind(this))
                         .spread(function (narratives, appsMap) {
                             narratives.forEach(function (narrative) {
-
                                 narrative.apps = narrative.apps.map(function (app) {
                                     var name,
                                         appInfo = appsMap[app.id];
                                     if (appInfo) {
-                                        name = appInfo.name;
-                                    } else {
-                                        name = '*' + app.id;
+                                        return {
+                                            id: app.id,
+                                            name: appInfo.name
+                                        };
                                     }
                                     return {
-                                        id: app.id,
-                                        name: name
-                                    };
+                                        name: app.id,
+                                        view: {
+                                            state: 'error',
+                                            title: 'App not found'
+                                        }
+                                    }
                                 });
                             });
 
