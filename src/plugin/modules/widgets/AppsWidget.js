@@ -48,7 +48,7 @@ define([
             function renderApp(app) {
                 return  tr([
                     td([
-                        a({href: '#appview/' + app.app.id}, app.app.name),
+                        a({href: '#narrativestore/app/' + app.app.id}, app.app.name),
                         span({style: {color: 'silver'}}, [' [', app.type.charAt(0), ']'])
                     ]),
                     td([
