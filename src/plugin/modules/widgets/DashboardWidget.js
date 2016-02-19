@@ -249,6 +249,23 @@ define([
                     this.templates.env.addGlobal('getConfig', function (prop) {
                         return this.runtime.getConfig(prop);
                     }.bind(this));
+                    
+                    this.templates.env.addFilter('methodPath', function (method) {
+                        var path = [];
+                        console.log(method);
+                        if (method.module) {
+                            path.push(method.module);
+                        }
+                        if (method.id) {
+                            path.push(method.id);
+                        } 
+                        if (method.tag) {
+                            path.push(method.tag);
+                        } else if (method.commitHash) {
+                            path.push(method.commitHash);
+                        }
+                        return path.join('/');
+                    });
 
                     // This is the cache of templates.
                     this.templates.cache = {};
@@ -445,7 +462,7 @@ define([
                                                     if (methodInfoList[0]) {
                                                         methodInfo = methodInfoList[0];
                                                         method.methodInfo = methodInfo;
-                                                        method.name = methodInfo.name + '[l]';
+                                                        method.name = methodInfo.name;
                                                         cachedMethods[cacheKey] = methodInfo;
                                                         return null;
                                                     }
@@ -521,6 +538,7 @@ define([
                                                     methodInfo = release[0];
                                                     method.methodInfo = methodInfo;
                                                     method.name = methodInfo.name;
+                                                    method.tag = 'release';
                                                     method.view = {
                                                         state: 'warning',
                                                         title: 'Commit hash not available, showing current release version',
@@ -532,6 +550,7 @@ define([
                                                     methodInfo = beta[0];
                                                     method.methodInfo = methodInfo;
                                                     method.name = methodInfo.name;
+                                                    method.tag = 'beta';
                                                     method.view = {
                                                         state: 'warning',
                                                         title: 'Commit hash not available, showing current beta version',
@@ -543,6 +562,7 @@ define([
                                                     methodInfo = dev[0];
                                                     method.methodInfo = methodInfo;
                                                     method.name = methodInfo.name;
+                                                    method.tag = 'dev';
                                                     method.view = {
                                                         state: 'warning',
                                                         title: 'Commit hash not available, showing current dev version',
@@ -693,7 +713,7 @@ define([
                             this.refresh()
                                 .catch(function (err) {
                                     this.setError(err);
-                                });
+                                }.bind(this));
                             break;
                         case 'error':
                             this.status = 'errorshown';
