@@ -41,19 +41,25 @@
                     {% if app.view %}
                         {% if app.view.state == 'error' %}
                             <span style="color: red;" data-toggle="tooltip" data-placement="auto top" data-container=".your-narratives-slider" title="{{app.view.title}}">
-                                <span class="fa fa-exclamation-circle"</span>  {{app.name}}
+                                <span class="fa fa-exclamation-circle"></span>  {{app.name}}
                             </span>                        
                         {% elif app.view.state == 'warning' %}
+                            <a href="#narrativestore/app/{{app.id}}">
                             <span style="color: orange;" data-toggle="tooltip" data-placement="auto top" data-container=".your-narratives-slider" title="{{app.view.title}}">
                                 {{app.name}} {% if app.view.flag %} [{{app.view.flag}}] {% endif %}
                             </span> 
+                            </a>
                         {% else %}
+                            <a href="#narrativestore/app/{{app.id}}">
                             <span  data-toggle="tooltip" data-placement="auto top" data-container="#narrative-{{narrative.object.wsid}}" title="{{app.view.title}}">
                                 {{app.name}}
                             </span>
+                            </a>
                         {% endif %}
-                    {% else %}                    
+                    {% else %}
+                        <a href="#narrativestore/app/{{app.id}}">
                         {{app.name}}
+                        </a>
                     {% endif %}
                 </div>
                 {% endfor %}
@@ -68,23 +74,31 @@
                             <span class="fa fa-inverse fa-stack-1x fa-cube" style=""></span> 
                         </span>
                     </span>
+                    
                     {% if method.view %}
                         {% if method.view.state == 'error' %}
                             <span style="color: red;" data-toggle="tooltip" data-placement="auto top" data-container=".shared-narratives-slider" title="{{method.view.title}}">
-                                <span class="fa fa-exclamation-circle"</span>  {{method.name}}
+                                <span class="fa fa-exclamation-circle"></span>  {{method.name}}
                             </span>                        
                         {% elif method.view.state == 'warning' %}
+                            <a href="#narrativestore/method/{{method | methodPath}}">
                             <span style="color: orange;" data-toggle="tooltip" data-placement="auto top" data-container=".shared-narratives-slider" title="{{method.view.title}}">
                                 {{method.name}} {% if method.view.flag %} [{{method.view.flag}}] {% endif %}
                             </span> 
+                            </a>
                         {% else %}
+                            <a href="#narrativestore/method/{{method | methodPath}}">
                             <span  data-toggle="tooltip" data-placement="auto top" data-container="#narrative-{{narrative.object.wsid}}" title="{{method.view.title}}">
                                 {{method.name}}
                             </span>
+                            </a>
                         {% endif %}
-                    {% else %}                    
+                    {% else %}  
+                        <a href="#narrativestore/method/{{method | methodPath}}">
                         {{method.name}}
+                        </a>
                     {% endif %}
+                    </a>
                 </div>
                 {% endfor %}
             </div>
