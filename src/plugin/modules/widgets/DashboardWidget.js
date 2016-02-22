@@ -105,7 +105,7 @@ define([
                         new nunjucks.WebLoader(Plugin.plugin.fullPath + '/DashboardWidget/templates', true)
                     ];
                     this.templates.env = new nunjucks.Environment(loaders, {
-                        'autoescape': false
+                        autoescape: false
                     });
                     this.templates.env.addFilter('roleLabel', function (role) {
                         if (this.listMaps['userRoles'][role]) {
@@ -252,7 +252,6 @@ define([
                     
                     this.templates.env.addFilter('methodPath', function (method) {
                         var path = [];
-                        console.log(method);
                         if (method.module) {
                             path.push(method.module);
                         }
@@ -435,7 +434,6 @@ define([
                                         }
                                         if (method.commitHash) {
                                             tag = method.commitHash;
-                                            // console.log(tag);
                                         }
                                         method.tryId = id;
                                         var cacheKey;
@@ -445,7 +443,6 @@ define([
                                             cacheKey = id;
                                         }
                                         if (cachedMethods[cacheKey]) {
-                                            // console.log('CACHE HIT');
                                             var methodInfo = cachedMethods[cacheKey];
                                             var tempMethod = narrative.methods[index];
                                             tempMethod.methodInfo = methodInfo;
@@ -534,7 +531,6 @@ define([
                                                 // method = narrative.methods[index];
                                                 var methodInfo;
                                                 if (release[0]) {
-                                                    //console.log('** Got release', id);
                                                     methodInfo = release[0];
                                                     method.methodInfo = methodInfo;
                                                     method.name = methodInfo.name;
@@ -546,7 +542,6 @@ define([
                                                     };
                                                     cachedMethods[cacheKey] = methodInfo;
                                                 } else if (beta[0]) {
-                                                    //console.log('** Got beta ', id);
                                                     methodInfo = beta[0];
                                                     method.methodInfo = methodInfo;
                                                     method.name = methodInfo.name;
@@ -558,7 +553,6 @@ define([
                                                     };
                                                     cachedMethods[cacheKey] = methodInfo;
                                                 } else if (dev[0]) {
-                                                    //console.log('** Got dev', id);
                                                     methodInfo = dev[0];
                                                     method.methodInfo = methodInfo;
                                                     method.name = methodInfo.name;
@@ -823,8 +817,6 @@ define([
                         Utils.setProp(this.state, path, value);
                         this.onStateChange();
                         this.status = 'dirty';
-                    } else {
-                        //console.log('no difference ... not saving ' + path); 
                     }
                 }
             },
@@ -835,6 +827,16 @@ define([
             hasState: {
                 value: function (path) {
                     return Utils.hasProp(this.state, path);
+                }
+            },
+            isState: {
+                value: function (path) {
+                    if (Utils.hasProp(this.state, path)) {
+                        if (Utils.getProp(this.state, path)) {
+                            return true;
+                        }
+                    }
+                    return false;
                 }
             },
             getState: {
