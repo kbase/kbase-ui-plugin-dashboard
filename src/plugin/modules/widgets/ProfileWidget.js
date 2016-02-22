@@ -104,7 +104,7 @@ define([
                     if (this.status === 'error') {
                         this.renderError();
                     } else {
-                        if (this.hasState('userProfile')) {
+                        if (this.isState('userProfile')) {
                             switch (this.getState('userProfile').getProfileStatus()) {
                                 case 'profile':
                                     // NORMAL PROFILE 
