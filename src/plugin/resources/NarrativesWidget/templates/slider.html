@@ -49,14 +49,14 @@
                     
                     {% if app.view %}
                         {% if app.view.state == 'error' %}
-                            <span style="color: red;" data-toggle="tooltip" data-placement="auto top" data-container=".your-narratives-slider" title="{{app.view.title}}">
-                                <span class="fa fa-exclamation-circle"></span>  {{app.name}}
-                            </span>                        
+                            <span data-toggle="tooltip" data-placement="auto top" data-container=".your-narratives-slider" title="{{app.view.title}}">
+                                {{app.name}}
+                            </span>
                         {% elif app.view.state == 'warning' %}
                             <a href="#narrativestore/app/{{app.id}}">
-                            <span style="color: orange;" data-toggle="tooltip" data-placement="auto top" data-container=".your-narratives-slider" title="{{app.view.title}}">
-                                {{app.name}} {% if app.view.flag %} [{{app.view.flag}}] {% endif %}
-                            </span> 
+                                <span data-toggle="tooltip" data-placement="auto top" data-container=".your-narratives-slider" title="{{app.view.title}}">
+                                    {{app.name}}
+                                </span> 
                             </a>
                         {% else %}
                             <a href="#narrativestore/app/{{app.id}}">
@@ -87,13 +87,13 @@
                     
                     {% if method.view %}
                         {% if method.view.state == 'error' %}
-                            <span style="color: red;" data-toggle="tooltip" data-placement="auto top" data-container=".your-narratives-slider" title="{{method.view.title}}">
-                                <span class="fa fa-exclamation-circle"></span>  {{method.name}}
+                            <span data-toggle="tooltip" data-placement="auto top" data-container=".your-narratives-slider" title="{{method.view.title}}">
+                                {{method.name}}
                             </span>                        
                         {% elif method.view.state == 'warning' %}
                             <a href="#narrativestore/method/{{method | methodPath}}">   
-                            <span style="color: orange;" data-toggle="tooltip" data-placement="auto top" data-container=".your-narratives-slider" title="{{method.view.title}}">
-                                {{method.name}} {% if method.view.flag %} [{{method.view.flag}}] {% endif %}
+                            <span data-toggle="tooltip" data-placement="auto top" data-container=".your-narratives-slider" title="{{method.view.title}}">
+                                {{method.name}}
                             </span> 
                             </a>
                         {% else %}
