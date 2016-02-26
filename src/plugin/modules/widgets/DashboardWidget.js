@@ -252,20 +252,25 @@ define([
 
                     this.templates.env.addFilter('methodPath', function (method) {
                         var path = [];
-                        if (method.module) {
-                            path.push(method.module);
+                        if (method.namespace) {
+                            path.push(method.namespace);
+                        } else {
+                            path.push('l.m');
                         }
                         if (method.id) {
                             path.push(method.id);
                         }
+//                        if (method.tag) {
+//                            path.push(method.tag);
+//                        } else if (method.commitHash) {
+//                            path.push(method.commitHash);
+//                        }  
                         if (method.tag) {
                             path.push(method.tag);
-                        } else if (method.commitHash) {
-                            path.push(method.commitHash);
                         }
                         return path.join('/');
                     });
-
+                    
                     // This is the cache of templates.
                     this.templates.cache = {};
 
@@ -374,14 +379,23 @@ define([
                 value: function () {
                     var methodStore = new NarrativeMethodStore(this.runtime.getConfig('services.narrative_method_store.url'), {
                         token: this.runtime.service('session').getAuthToken()
-                    });
+                    }),
+                        tag;
+                    if (this.runtime.config('deploy.environment') === 'prod') {
+                        tag = 'release';
+                    } else {
+                        tag = 'dev';
+                    }
                     return Promise.all([
-                        methodStore.list_apps({})
+                        methodStore.list_apps({tag: tag})
                     ])
                         .spread(function (release) {
                             var appMap = {};
                             release.forEach(function (method) {
-                                appMap[method.id] = method;
+                                appMap[method.id] = {
+                                    info: method,
+                                    tag: tag
+                                };
                             });
                             // this.setState('appsMap', appMap);
                             return appMap;
@@ -392,17 +406,29 @@ define([
                 value: function () {
                     var methodStore = new NarrativeMethodStore(this.runtime.getConfig('services.narrative_method_store.url'), {
                         token: this.runtime.service('session').getAuthToken()
-                    });
+                    }),
+                        tag;
+                    if (this.runtime.config('deploy.environment') === 'prod') {
+                        tag = 'release';
+                    } else {
+                        tag = 'dev';
+                    }
                     return Promise.all([
-                        methodStore.list_methods({})
+                        methodStore.list_methods({tag: tag})
                     ])
                         .spread(function (methods) {
                             var methodsMap = {};
                             methods.forEach(function (method) {
                                 if (method.namesapce) {
-                                    methodsMap[method.namespace + '/' + method.id] = method;
+                                    methodsMap[method.namespace + '/' + method.id] = {
+                                        info: method,
+                                        tag: tag
+                                    };
                                 } else {
-                                    methodsMap[method.id] = method;
+                                    methodsMap[method.id] = {
+                                        info: method,
+                                        tag: tag
+                                    };
                                 }
                             });
                             return methodsMap;
@@ -421,18 +447,22 @@ define([
                         .spread(function (narratives, appsMap, methodsMap) {
                             narratives.forEach(function (narrative) {
                                 narrative.methods = narrative.methods.map(function (method) {
-                                    var methodInfo, methodId;
+                                    var methodInfo, methodId, legacy;
                                     if (method.module) {
                                         methodId = [method.module, method.id].join('/');
+                                        legacy = false;
                                     } else {
                                         methodId = method.id;
+                                        legacy = true;
                                     }
                                     methodInfo = methodsMap[methodId];
                                     if (methodInfo) {
                                         return {
-                                            id: methodId,
-                                            methodInfo: methodInfo,
-                                            name: methodInfo.name
+                                            namespace: method.module,
+                                            id: method.id,
+                                            info: methodInfo.info,
+                                            name: methodInfo.info.name,
+                                            tag: legacy? null : methodInfo.tag
                                         };
                                     }
                                     return {
@@ -451,7 +481,8 @@ define([
                                     if (appInfo) {
                                         return {
                                             id: app.id,
-                                            name: appInfo.name
+                                            name: appInfo.info.name,
+                                            tag: appInfo.tag
                                         };
                                     }
                                     return {
