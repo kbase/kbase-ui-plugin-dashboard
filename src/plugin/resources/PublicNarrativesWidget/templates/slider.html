@@ -156,7 +156,7 @@
                 {{runningJobs}} <span class="fa fa-gear fa-spin" style="color:green;"  data-toggle="tooltip" data-placement="auto" title="These are the jobs currently running for this Narrative" data-container="body"></span>
                 {% endif %}
                 {% if errorJobs > 0 %}
-                {{errorJobs}} <span class="fa fa-exclamation-circle fa-spin" style="color:red;" data-toggle="tooltip" data-placement="auto" title="These are jobs which encountered an error while running" data-container="body"></span>
+                {{errorJobs}} <span class="fa fa-exclamation-circle" style="color:red;" data-toggle="tooltip" data-placement="auto" title="These are jobs which encountered an error while running" data-container="body"></span>
                 {% endif %}
             </div><div style="display:inline-block; width: 33%;text-align: center;">
                 {% if narrative.object.metadata.jobInfo.run_time %}
