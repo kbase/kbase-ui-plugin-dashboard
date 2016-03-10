@@ -91,7 +91,14 @@ define([
                         // User entered invalid search expression. How to give the user feedback?
                     }
                     var nar = this.getState('narratives').filter(function (x) {
-                        if (x.workspace.metadata.narrative_nice_name.match(searchRe) ||
+                        if (x.workspace.metadata.narrative_nice_name.match(searchRe) 
+                        
+                            ||
+                        
+                            x.workspace.owner.match(searchRe)
+                            
+                            ||
+                            
                             (x.object.metadata.cellInfo &&
                                 (function (apps) {
                                     for (var i in apps) {
@@ -100,7 +107,10 @@ define([
                                             return true;
                                         }
                                     }
-                                }.bind(this))(Object.keys(x.object.metadata.cellInfo.app))) ||
+                                }.bind(this))(Object.keys(x.object.metadata.cellInfo.app))) 
+                                    
+                            ||
+                            
                             (x.object.metadata.cellInfo &&
                                 (function (methods) {
                                     for (var i in methods) {
@@ -109,7 +119,10 @@ define([
                                             return true;
                                         }
                                     }
-                                }.bind(this))(Object.keys(x.object.metadata.cellInfo.method))))
+                                }.bind(this))(Object.keys(x.object.metadata.cellInfo.method)))
+                                    
+                           
+                            )                        
                         {
                             return true;
                         } else {

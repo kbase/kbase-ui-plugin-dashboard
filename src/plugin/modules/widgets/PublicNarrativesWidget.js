@@ -127,7 +127,15 @@ define([
                     }
                     var searchRe = new RegExp(options.search, 'i'),
                         nar = this.getState('narratives').filter(function (x) {
-                        if (x.workspace.metadata.narrative_nice_name.match(searchRe) ||
+                        if (
+                            x.workspace.metadata.narrative_nice_name.match(searchRe)
+
+                            ||
+                            
+                             x.workspace.owner.match(searchRe)
+
+                            ||
+                            
                             (x.object.metadata.cellInfo &&
                                 (function (apps) {
                                     for (var i in apps) {
@@ -136,7 +144,10 @@ define([
                                             return true;
                                         }
                                     }
-                                }.bind(this))(Object.keys(x.object.metadata.cellInfo.app))) ||
+                                }.bind(this))(Object.keys(x.object.metadata.cellInfo.app)))
+
+                            ||
+                            
                             (x.object.metadata.cellInfo &&
                                 (function (methods) {
                                     for (var i in methods) {
@@ -145,7 +156,9 @@ define([
                                             return true;
                                         }
                                     }
-                                }.bind(this))(Object.keys(x.object.metadata.cellInfo.method)))) {
+                                }.bind(this))(Object.keys(x.object.metadata.cellInfo.method)))
+
+                            ) {
                             return true;
                         } else {
                             return false;
@@ -185,14 +198,14 @@ define([
                         .then(function (narratives) {
                             var username = this.runtime.getService('session').getUsername();
                             narratives = narratives.filter(function (x) {
-                                    if (x.workspace.owner === username ||
-                                        x.workspace.user_permission !== 'n') {
-                                        return false;
-                                    } else {
-                                        return true;
-                                    }
-                                }.bind(this));
-                            
+                                if (x.workspace.owner === username ||
+                                    x.workspace.user_permission !== 'n') {
+                                    return false;
+                                } else {
+                                    return true;
+                                }
+                            }.bind(this));
+
                             this.setState('narratives', narratives);
                             this.setState('narrativesFiltered', narratives);
                         }.bind(this));
