@@ -98,5 +98,5 @@ install:
             menus: ['authenticated']
             definition:
                 path: ['dashboard']
-                label: Dashbaord
+                label: Dashboard
                 icon: dashboard
