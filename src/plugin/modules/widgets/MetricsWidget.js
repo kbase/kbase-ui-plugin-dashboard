@@ -90,10 +90,9 @@ define([
                             value: userValue,
                             bin: userBin,
                             side: (userBin < bins.bins.length / 2 ? 'right' : 'left')
-
-                        }
+                        };
                     } else {
-                        var user = {scale: 0, value: 0}
+                        var user = {scale: 0, value: 0};
                     }
 
                     this.setState('histogram.narratives', {
@@ -156,10 +155,9 @@ define([
                             value: userValue,
                             bin: userBin,
                             side: (userBin < bins.bins.length / 2 ? 'right' : 'left')
-
-                        }
+                        };
                     } else {
-                        var user = {scale: 0, value: 0}
+                        var user = {scale: 0, value: 0};
                     }
 
                     this.setState('histogram.sharedNarratives', {
@@ -223,9 +221,9 @@ define([
                             bin: userBin,
                             side: (userBin < bins.bins.length / 2 ? 'right' : 'left')
 
-                        }
+                        };
                     } else {
-                        var user = {scale: 0, value: 0}
+                        var user = {scale: 0, value: 0};
                     }
 
                     this.setState('histogram.sharingNarratives', {
@@ -275,9 +273,9 @@ define([
                         var user = {
                             scale: userBin * width + width / 2,
                             value: userValue
-                        }
+                        };
                     } else {
-                        var user = {scale: 0, value: 0}
+                        var user = {scale: 0, value: 0};
                     }
 
                     this.setState('histogram.sharedNarratives', {
