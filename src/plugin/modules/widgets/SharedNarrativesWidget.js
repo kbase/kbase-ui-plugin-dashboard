@@ -135,10 +135,10 @@ define([
             onStateChange: {
                 value: function () {
                     var count = this.doState('narratives', function (x) {
-                        return x.length
+                        return x.length;
                     }, null);
                     var filtered = this.doState('narrativesFiltered', function (x) {
-                        return x.length
+                        return x.length;
                     }, null);
 
                     this.viewState.setItem('sharedNarratives', {
@@ -153,7 +153,7 @@ define([
                         token: this.runtime.service('session').getAuthToken()
                     });
                     return Promise.all([
-                        methodStore.list_apps({}),
+                        methodStore.list_apps({})
                     ])
                         .spread(function (apps) {
                             var appMap = {};
