@@ -165,7 +165,7 @@
                 </span>
                 {% endif %} 
                 {% if narrative.workspace.globalread == 'r' or narrative.workspace.globalread == 'w' %} 
-                <span class="fa fa-globe"  data-toggle="tooltip" data-placement="auto" title="This narrative is Publicly available (read-only)" data-container="body"></span>
+                <span class="fa fa-globe"  data-toggle="tooltip" data-placement="auto" title="This narrative is Publicly available" data-container="body"></span>
                 {% endif %}
             </div><div style="display:inline-block; width: 33%;text-align: center;">
                 {% set runningJobs = narrative.object.metadata.jobInfo.running %}
