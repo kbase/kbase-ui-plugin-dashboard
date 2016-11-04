@@ -9,7 +9,6 @@ and open the template in the editor.
 */
 
 .kbase-dashboard-view {
-  padding: 15px 0 0 0;
 }
 
  .kb-row {}
@@ -191,3 +190,4 @@ and open the template in the editor.
     display: inline-block;
     width: 1.2em;
 }
+

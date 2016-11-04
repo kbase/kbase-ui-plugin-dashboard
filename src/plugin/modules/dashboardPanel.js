@@ -7,9 +7,9 @@
  */
 define([
     'promise',
-    'kb_common_html',
-    'kb_common_observed',
-    'kb_common_widgetSet'
+    'kb/common/html',
+    'kb/common/observed',
+    'kb/widget/widgetSet'
 ],
     function (Promise, html, observed, fWidgetSet) {
         'use strict';
@@ -33,10 +33,10 @@ define([
                                         })}),
                                     div({id: widgetSet.addWidget('dashboardPublicNarratives', {
                                             viewState: viewState
-                                        })}),
-                                    div({id: widgetSet.addWidget('dashboardApps', {
-                                            viewState: viewState
                                         })})
+                                    //div({id: widgetSet.addWidget('dashboardApps', {
+                                    //        viewState: viewState
+                                    //    })})
                                 ]),
                                 div({class: 'col-sm-4'}, [
                                     div({id: widgetSet.addWidget('dashboardProfile', {
@@ -80,6 +80,9 @@ define([
             function start(params) {
                 return widgetSet.start(params);
             }
+            function run(params) {
+                return widgetSet.run(params);
+            }
             function stop() {
                 return widgetSet.stop();
             }
@@ -89,6 +92,7 @@ define([
             return {
                 attach: attach,
                 start: start,
+                run: run,
                 stop: stop,
                 detach: detach
             };

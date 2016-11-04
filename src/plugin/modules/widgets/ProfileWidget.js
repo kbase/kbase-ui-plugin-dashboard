@@ -1,10 +1,9 @@
 define([
     'promise',
     'kb_dashboard_widget_base',
-    'kb_common_utils',
-    'kb_widgetBases_standardWidget'
+    'kb/common/utils'
 ],
-    function (Promise, DashboardWidget, Utils, standardWidget) {
+    function (Promise, DashboardWidget, Utils) {
         'use strict';
 
         var widget = Object.create(DashboardWidget, {
@@ -69,11 +68,13 @@ define([
             },
             calcProfileCompletion: {
                 value: function (profile) {
-                    var completion = profile.calcProfileCompletion();
-                    if (completion.status === 'complete') {
-                        return null;
-                    } else {
-                        return completion;
+                    if (profile) {
+                        var completion = profile.calcProfileCompletion();
+                        if (completion.status === 'complete') {
+                            return null;
+                        } else {
+                            return completion;
+                        }
                     }
                 }
             },
@@ -103,7 +104,7 @@ define([
                     if (this.status === 'error') {
                         this.renderError();
                     } else {
-                        if (this.hasState('userProfile')) {
+                        if (this.isState('userProfile')) {
                             switch (this.getState('userProfile').getProfileStatus()) {
                                 case 'profile':
                                     // NORMAL PROFILE 

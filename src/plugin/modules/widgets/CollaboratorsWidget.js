@@ -8,7 +8,7 @@
 
 define([
     'kb_dashboard_widget_base', 
-    'kb_service_api', 
+    'kb/service/serviceApi', 
     'bluebird'],
    function (DashboardWidget, ServiceApi, Promise) {
       'use strict';

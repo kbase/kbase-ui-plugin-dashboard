@@ -1,15 +1,18 @@
+/*global define*/
+/*jslint white:true,browser:true */
 define([
-    'nunjucks', 
+    'nunjucks',
     'jquery',
-    'bluebird', 
-    'kb_common_html',
-    'kb_common_utils', 
-    'kb_userprofile_userProfile', 
-    'kb_common_logger',
-    'kb_common_gravatar',
+    'bluebird',
+    'kb/common/html',
+    'kb/common/utils',
+    'kb/service/serviceApi',
+    'kb/service/client/narrativeMethodStore',
+    'kb/common/logger',
+    'kb/common/gravatar',
     'kb_plugin_dashboard'
 ],
-    function (nunjucks, $, Promise, html, Utils, UserProfile, Logger, gravatar, Plugin) {
+    function (nunjucks, $, Promise, html, Utils, ServiceApi, NarrativeMethodStore, Logger, gravatar, Plugin) {
         "use strict";
         var DashboardWidget = Object.create({}, {
             // The init function interfaces this object with the caller, and sets up any 
@@ -35,7 +38,7 @@ define([
                     // Note that params may change. E.g. the user may select another 
                     // member profile to view.
                     this.params = {};
-                    
+
                     this.runtime = cfg.runtime;
                     if (!this.runtime) {
                         throw {
@@ -44,7 +47,7 @@ define([
                             message: 'The runtime is required for a dashboard widget.'
                         };
                     }
-                    
+
                     this.container = cfg.container;
 
                     // Also the userId is required -- this is the user for whom the social widget is concerning.
@@ -88,7 +91,7 @@ define([
                     this.stateMeta = {
                         status: 'none',
                         timestamp: new Date()
-                    }
+                    };
 
                     // Creates maps out of lists.
                     this.createListMaps();
@@ -97,46 +100,43 @@ define([
                     // NB the templating requires a dedicated widget resources directory in 
                     //   /src/widgets/WIDGETNAME/templates
                     this.templates = {};
-                    var loaders = [                        
-                        new nunjucks.WebLoader(Plugin.plugin.path + '/' + this.widgetName + '/templates', true),
-                        new nunjucks.WebLoader(Plugin.plugin.path + '/DashboardWidget/templates', true)
+                    var loaders = [
+                        new nunjucks.WebLoader(Plugin.plugin.fullPath + '/' + this.widgetName + '/templates', true),
+                        new nunjucks.WebLoader(Plugin.plugin.fullPath + '/DashboardWidget/templates', true)
                     ];
                     this.templates.env = new nunjucks.Environment(loaders, {
-                        'autoescape': false
+                        autoescape: false
                     });
                     this.templates.env.addFilter('roleLabel', function (role) {
                         if (this.listMaps['userRoles'][role]) {
                             return this.listMaps['userRoles'][role].label;
-                        } else {
-                            return role;
                         }
+                        return role;
                     }.bind(this));
                     this.templates.env.addFilter('userClassLabel', function (userClass) {
                         if (this.listMaps['userClasses'][userClass]) {
                             return this.listMaps['userClasses'][userClass].label;
-                        } else {
-                            return userClass;
                         }
+                        return userClass;
                     }.bind(this));
                     this.templates.env.addFilter('titleLabel', function (title) {
                         if (this.listMaps['userTitles'][title]) {
                             return this.listMaps['userTitles'][title].label;
-                        } else {
-                            return title;
                         }
+                        return title;
                     }.bind(this));
                     this.templates.env.addFilter('permissionLabel', function (permissionFlag) {
                         if (this.listMaps['permissionFlags'][permissionFlag]) {
                             return this.listMaps['permissionFlags'][permissionFlag].label;
-                        } else {
-                            return permissionFlag;
                         }
+                        return permissionFlag;
                     }.bind(this));
                     this.templates.env.addFilter('length2', function (x) {
                         if (x) {
                             if (x instanceof Array) {
                                 return x.length;
-                            } else if (x instanceof Object) {
+                            }
+                            if (x instanceof Object) {
                                 return Object.keys(x).length;
                             }
                         }
@@ -223,10 +223,10 @@ define([
                                     b = b[prop];
                                 }
                                 if (a < b) {
-                                    return 1;
+                                    return -1;
                                 }
                                 if (a > b) {
-                                    return -1;
+                                    return 1;
                                 }
                                 return 0;
                             });
@@ -245,17 +245,39 @@ define([
                     this.templates.env.addGlobal('randomNumber', function (from, to) {
                         return Math.floor(from + Math.random() * (to - from));
                     });
-                    
+
                     this.templates.env.addGlobal('getConfig', function (prop) {
                         return this.runtime.getConfig(prop);
                     }.bind(this));
 
+                    this.templates.env.addFilter('methodPath', function (method) {
+                        var path = [];
+                        if (method.namespace) {
+                            path.push(method.namespace);
+                        } else {
+                            path.push('l.m');
+                        }
+                        if (method.id) {
+                            path.push(method.id);
+                        }
+//                        if (method.tag) {
+//                            path.push(method.tag);
+//                        } else if (method.commitHash) {
+//                            path.push(method.commitHash);
+//                        }  
+                        if (method.tag) {
+                            path.push(method.tag);
+                        }
+                        return path.join('/');
+                    });
+                    
                     // This is the cache of templates.
                     this.templates.cache = {};
 
                     // The context object is what is given to templates.
                     this.context = {};
                     this.context.env = {
+                        pluginPath: Plugin.plugin.fullPath,
                         widgetTitle: this.widgetTitle,
                         widgetName: this.widgetName,
                         docsite: this.runtime.getConfig('docsite'),
@@ -270,10 +292,13 @@ define([
 
                     // HEARTBEAT
 
+                    this.refreshEnabled = false;
+
                     // refreshBeat is a one minute (or whatever) approximate timer for 
                     // refreshing more expensive data.
-                    // this.refreshBeat = 0;
+                    // this.refreshBeat = 60000;
                     //
+                    // If we don't define these, then refreshing is disabled.
                     this.refreshInterval = 60000;
                     this.refreshLastTime = null;
 
@@ -344,10 +369,150 @@ define([
             },
             setupAuth: {
                 value: function () {
-                    
+
                 }
             },
-            
+            // Commonly used data access and munging methods
+
+
+            getApps: {
+                value: function () {
+                    var methodStore = new NarrativeMethodStore(this.runtime.getConfig('services.narrative_method_store.url'), {
+                        token: this.runtime.service('session').getAuthToken()
+                    }),
+                        tag;
+                    if (this.runtime.config('deploy.environment') === 'prod') {
+                        tag = 'release';
+                    } else {
+                        tag = 'dev';
+                    }
+                    return Promise.all([
+                        methodStore.list_apps({tag: tag})
+                    ])
+                        .spread(function (release) {
+                            var appMap = {};
+                            release.forEach(function (method) {
+                                appMap[method.id] = {
+                                    info: method,
+                                    tag: tag
+                                };
+                            });
+                            // this.setState('appsMap', appMap);
+                            return appMap;
+                        }.bind(this));
+                }
+            },
+            getMethods: {
+                value: function () {
+                    var methodStore = new NarrativeMethodStore(this.runtime.getConfig('services.narrative_method_store.url'), {
+                        token: this.runtime.service('session').getAuthToken()
+                    }),
+                        tag;
+                    if (this.runtime.config('deploy.environment') === 'prod') {
+                        tag = 'release';
+                    } else {
+                        tag = 'dev';
+                    }
+                    return Promise.all([
+                        methodStore.list_methods({tag: tag})
+                    ])
+                        .spread(function (methods) {
+                            var methodsMap = {};
+                            methods.forEach(function (method) {
+                                if (method.namesapce) {
+                                    methodsMap[method.namespace + '/' + method.id] = {
+                                        info: method,
+                                        tag: tag
+                                    };
+                                } else {
+                                    methodsMap[method.id] = {
+                                        info: method,
+                                        tag: tag
+                                    };
+                                }
+                            });
+                            return methodsMap;
+                        }.bind(this));
+                }
+            },
+            getNarratives: {
+                value: function (params, filter) {
+                    return Promise.all([
+                        this.kbservice.getNarratives({
+                            params: params
+                        }),
+                        this.getApps(),
+                        this.getMethods()
+                    ])
+                        .spread(function (narratives, appsMap, methodsMap) {
+                            narratives.forEach(function (narrative) {
+                                narrative.methods = narrative.methods.map(function (method) {
+                                    var methodInfo, methodId, legacy;
+                                    if (method.module) {
+                                        methodId = [method.module, method.id].join('/');
+                                        legacy = false;
+                                    } else {
+                                        methodId = method.id;
+                                        legacy = true;
+                                    }
+                                    methodInfo = methodsMap[methodId];
+                                    if (methodInfo) {
+                                        return {
+                                            namespace: method.module,
+                                            id: method.id,
+                                            info: methodInfo.info,
+                                            name: methodInfo.info.name,
+                                            tag: legacy? null : methodInfo.tag
+                                        };
+                                    }
+                                    return {
+                                        id: methodId,
+                                        name: method.id,
+                                        view: {
+                                            state: 'error',
+                                            title: 'Method not found'
+                                        }
+                                    };
+                                });
+                            });
+                            narratives.forEach(function (narrative) {
+                                narrative.apps = narrative.apps.map(function (app) {
+                                    var appInfo = appsMap[app.id];
+                                    if (appInfo) {
+                                        return {
+                                            id: app.id,
+                                            name: appInfo.info.name,
+                                            tag: appInfo.tag
+                                        };
+                                    }
+                                    return {
+                                        name: app.id,
+                                        view: {
+                                            state: 'error',
+                                            title: 'App not found'
+                                        }
+                                    };
+                                });
+                            });
+                            return this.kbservice.getPermissions(narratives);
+                        }.bind(this))
+                        .then(function (narratives) {
+                            return narratives.sort(function (a, b) {
+                                return b.object.saveDate.getTime() - a.object.saveDate.getTime();
+                            });
+                        });
+                }
+            },
+            getAppName: {
+                value: function (name) {
+                    return this.getState(['appsMap', name, 'name'], name);
+                }
+            },
+            getMethodName: {
+                value: function (name) {
+                    return this.getState(['methodsMap', name, 'name'], name);
+                }
+            },
             // LIFECYCLE
 
             go: {
@@ -396,16 +561,13 @@ define([
                     if (this.subscriptions) {
                         this.subscriptions.forEach(function (sub) {
                             this.runtime.drop(sub);
-                        });
+                        }.bind(this));
                         this.subscriptions = [];
                     }
                 }
             },
             stop: {
                 value: function () {
-                    if (this.heartbeatSubscription) {
-                        this.heartbeatSubscription.unsubscribe();
-                    }
                     this.stopSubscriptions();
                     if (this.onStop) {
                         this.onStop();
@@ -414,14 +576,16 @@ define([
             },
             handleHeartbeat: {
                 value: function (data) {
-                    var now = (new Date()).getTime();
-                    if (!this.refreshLastTime) {
-                        this.refreshLastTime = now;
-                    }
-                    if (now - this.refreshLastTime >= this.refreshInterval) {
-                        if (this.onRefreshbeat) {
-                            this.onRefreshbeat(data);
+                    if (this.refreshEnabled) {
+                        var now = (new Date()).getTime();
+                        if (!this.refreshLastTime) {
                             this.refreshLastTime = now;
+                        }
+                        if (now - this.refreshLastTime >= this.refreshInterval) {
+                            if (this.onRefreshbeat) {
+                                this.refreshLastTime = now;
+                                this.onRefreshbeat(data);
+                            }
                         }
                     }
                     if (this.onHeartbeat) {
@@ -431,32 +595,18 @@ define([
             },
             onHeartbeat: {
                 value: function (data) {
-                    if (this.status === 'dirty') {
-                        // make sure the flag is reset syncronously.
-                        // If we reset the flag in refresh().then(), as we 
-                        // did at one time, there is race condition -- another
-                        // heartbeat may occur during the refresh handling and 
-                        // trigger a second refresh (since the widget is still 
-                        // dirty.)
-                        this.status = 'clean';
-                        this.refresh()
-                            .then(function () {
-                                // anything
-                            }.bind(this))
-                            .catch(function (err) {
-                                this.setError(err);
-                            }.bind(this))
-                            .done();
-                    } else if (this.status === 'error') {
-                        this.status = 'errorshown';
-                        this.refresh()
-                            .then(function () {
-                                // anything to do?
-                            }.bind(this))
-                            .catch(function (err) {
-                                this.setError(err);
-                            }.bind(this))
-                            .done();
+                    switch (this.status) {
+                        case 'dirty':
+                            this.status = 'clean';
+                            this.refresh()
+                                .catch(function (err) {
+                                    this.setError(err);
+                                }.bind(this));
+                            break;
+                        case 'error':
+                            this.status = 'errorshown';
+                            this.renderError();
+                            break;
                     }
                 }
             },
@@ -465,8 +615,7 @@ define([
                     this.setInitialState()
                         .catch(function (err) {
                             this.setError(err);
-                        }.bind(this))
-                        .done();
+                        }.bind(this));
                     return this;
                 }
             },
@@ -474,13 +623,16 @@ define([
                 value: function () {
                     // does whatever the widget needs to do to set itself up
                     // after config, params, and auth have been configured.
+                    this.kbservice = ServiceApi.make({runtime: this.runtime});
 
                     return this;
                 }
             },
             renderUI: {
                 value: function () {
-                    this.loadCSS();
+                    // No longer necessary -- the plugin config for the widget can
+                    // specify whether a css should be loaded.
+                    // this.loadCSS();
                     this.renderLayout();
                     return this;
                 }
@@ -559,8 +711,6 @@ define([
                         Utils.setProp(this.state, path, value);
                         this.onStateChange();
                         this.status = 'dirty';
-                    } else {
-                        //console.log('no difference ... not saving ' + path); 
                     }
                 }
             },
@@ -571,6 +721,16 @@ define([
             hasState: {
                 value: function (path) {
                     return Utils.hasProp(this.state, path);
+                }
+            },
+            isState: {
+                value: function (path) {
+                    if (Utils.hasProp(this.state, path)) {
+                        if (Utils.getProp(this.state, path)) {
+                            return true;
+                        }
+                    }
+                    return false;
                 }
             },
             getState: {
@@ -636,14 +796,14 @@ define([
                     this.setInitialState({
                         force: true
                     })
-                            .then(function () {
-                                this.status = 'dirty';
-                                // this.refresh();
-                            }.bind(this))
-                            .catch(function (err) {
-                                this.setError(err);
-                            }.bind(this))
-                            .done();
+                        .then(function () {
+                            this.status = 'dirty';
+                            // this.refresh();
+                        }.bind(this))
+                        .catch(function (err) {
+                            this.setError(err);
+                        }.bind(this))
+                        .done();
                 }
             },
             onLoggedOut: {
@@ -655,7 +815,6 @@ define([
                     })
                         .then(function () {
                             this.status = 'dirty';
-                            // this.refresh();
                         }.bind(this))
                         .catch(function (err) {
                             this.setError(err);
@@ -736,7 +895,6 @@ define([
                 value: function (errorObj) {
                     // Very simple error view.
                     if (errorObj) {
-                        var errorText;
                         if (typeof errorObj === 'string') {
                             var error = {
                                 title: 'Error', message: errorObj
@@ -779,19 +937,12 @@ define([
             render: {
                 value: function () {
                     try {
-                        if (this.status === 'error' || this.error) {
-                            this.renderError();
-                        } else if (this.runtime.getService('session').isLoggedIn()) {
-                            //if (this.initialStateSet) {
+                        if (this.runtime.getService('session').isLoggedIn()) {
                             this.setTitle(this.widgetTitle);
                             this.places.content.html(this.renderTemplate('authorized'));
-                            //}
                         } else {
-                            //if (this.initialStateSet) {
-                            // no profile, no basic aaccount info
                             this.setTitle(this.widgetTitle);
                             this.places.content.html(this.renderTemplate('unauthorized'));
-                            //}
                         }
                         if (this.afterRender) {
                             this.afterRender();
@@ -847,6 +998,9 @@ define([
             },
             loadCSSResource: {
                 value: function (url) {
+                    if (!this.haveCss) {
+                        return;
+                    }
                     if (!this.cssLoaded) {
                         this.cssLoaded = {};
                     }
@@ -890,9 +1044,9 @@ define([
                                     break;
                             }
                             this.places.alert.append(
-                                    '<div class="alert alert-dismissible alert-' + alertClass + '" role="alert">' +
-                                    '<button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>' +
-                                    '<strong>' + message.title + '</strong> ' + message.message + '</div>');
+                                '<div class="alert alert-dismissible alert-' + alertClass + '" role="alert">' +
+                                '<button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>' +
+                                '<strong>' + message.title + '</strong> ' + message.message + '</div>');
                         }
                     }
                 }

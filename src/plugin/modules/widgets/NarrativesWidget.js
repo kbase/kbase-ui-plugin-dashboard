@@ -7,13 +7,11 @@
  */
 define([
     'jquery',
-    'bluebird',
     'kb_dashboard_widget_base',
-    'kb_service_api',
-    'kb_widget_buttonBar',
+    'kb/widget/widgets/buttonBar',
     'bootstrap'
 ],
-    function ($, Promise, DashboardWidget, ServiceAPI, ButtonBar) {
+    function ($, DashboardWidget, ButtonBar) {
         'use strict';
         var widget = Object.create(DashboardWidget, {
             init: {
@@ -22,33 +20,7 @@ define([
                     cfg.title = 'Your Narratives';
                     this.DashboardWidget_init(cfg);
 
-                    this.templates.env.addFilter('appName', function (x) {
-                        return this.getState(['appsMap', x, 'name'], x);
-                    }.bind(this));
-                    this.templates.env.addFilter('methodName', function (x) {
-                        return this.getState(['methodsMap', x, 'name'], x);
-                    }.bind(this));
-
                     return this;
-                }
-            },
-            getAppName: {
-                value: function (name) {
-                    return this.getState(['appsMap', name, 'name'], name);
-                }
-            },
-            getMethodName: {
-                value: function (name) {
-                    return this.getState(['methodsMap', name, 'name'], name);
-                }
-            },
-            setup: {
-                value: function () {
-                    // User profile service
-
-                    // The workspace will get the common settings -- url and auth token -- from the appropriate
-                    // singleton modules (Session, Config)
-                    this.kbservice = ServiceAPI.make({runtime: this.runtime});
                 }
             },
             getViewTemplate: {
@@ -187,67 +159,15 @@ define([
             },
             setInitialState: {
                 value: function (options) {
-                    return new Promise(function (resolve, reject) {
-                        if (!this.runtime.getService('session').isLoggedIn()) {
-                            // ensure that all state is zapped.
-                            this.deleteState();
-                            resolve();
-                            return;
-                        }
-                        Promise.all([this.kbservice.getNarratives({
-                                params: {
-                                    showDeleted: 0,
-                                    owners: [this.runtime.getService('session').getUsername()]
-                                }
-                            }),
-                            this.kbservice.getApps(),
-                            this.kbservice.getMethods()])
-                            .spread(function (narratives, apps, methods) {
-                                // Set the apps as state, and then create a map of app names to app spec.
-                                this.setState('apps', apps);
-                                var appsMap = {};
-                                apps.forEach(function (app) {
-                                    appsMap[app.id] = app;
-                                });
-                                this.setState('appsMap', appsMap);
-
-                                // Same for methods.
-                                this.setState('methods', methods);
-                                var methodsMap = {};
-                                methods.forEach(function (method) {
-                                    methodsMap[method.id] = method;
-                                });
-                                this.setState('methodsMap', methodsMap);
-
-                                // If we get no narratives back, we just ensure that
-                                // our state objects are empty. Otheriwse, we need to 
-                                // populate the permissions on the narratives, and then 
-                                // run any filters.
-                                if (narratives.length === 0) {
-                                    this.setState('narratives', []);
-                                    this.setState('narrativesFiltered', []);
-                                    resolve();
-                                } else {
-                                    this.kbservice.getPermissions(narratives)
-                                        .then(function (narratives) {
-                                            narratives = narratives.sort(function (a, b) {
-                                                return b.object.saveDate.getTime() - a.object.saveDate.getTime();
-                                            });
-                                            this.setState('narratives', narratives);
-                                            this.filterNarratives();
-                                            resolve();
-                                        }.bind(this))
-                                        .catch(function (err) {
-                                            reject(err);
-                                        });
-                                }
-                            }.bind(this))
-                            .catch(function (err) {
-                                // this.viewState.setError('narratives', new Error('Error getting Narratives'));
-                                reject(err);
-                            }.bind(this))
-                            .done();
-                    }.bind(this));
+                    return this.getNarratives({
+                        showDeleted: 0,
+                        owners: [this.runtime.getService('session').getUsername()]
+                    })
+                        .then(function (narratives) {                            
+                            
+                            this.setState('narratives', narratives);
+                            this.filterNarratives();
+                        }.bind(this));
                 }
             }
         });
