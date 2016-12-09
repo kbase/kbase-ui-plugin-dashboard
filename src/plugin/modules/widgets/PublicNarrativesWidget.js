@@ -197,7 +197,6 @@ define([
                             excludeGlobal: 0
                         })
                         .then(function(narratives) {
-                            var username = this.runtime.getService('session').getUsername();
                             narratives = narratives.filter(function(x) {
                                 if (x.workspace.globalread === 'r') {
                                     return true;
