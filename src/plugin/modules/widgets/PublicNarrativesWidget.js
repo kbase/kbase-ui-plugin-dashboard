@@ -6,17 +6,17 @@
  white: true
  */
 define([
-    'jquery',
-    'kb_dashboard_widget_base',
-    'kb/widget/widgets/buttonBar',
-    'bluebird',
-    'bootstrap'
-],
-    function ($, DashboardWidget, Buttonbar, Promise) {
+        'jquery',
+        'kb_dashboard_widget_base',
+        'kb/widget/widgets/buttonBar',
+        'bluebird',
+        'bootstrap'
+    ],
+    function($, DashboardWidget, Buttonbar, Promise) {
         "use strict";
         var widget = Object.create(DashboardWidget, {
             init: {
-                value: function (cfg) {
+                value: function(cfg) {
                     cfg.name = 'PublicNarrativesWidget';
                     cfg.title = 'Public Narratives';
                     this.DashboardWidget_init(cfg);
@@ -28,17 +28,17 @@ define([
                 }
             },
             getAppName: {
-                value: function (name) {
+                value: function(name) {
                     return this.getState(['appsMap', name, 'name'], name);
                 }
             },
             getMethodName: {
-                value: function (name) {
+                value: function(name) {
                     return this.getState(['methodsMap', name, 'name'], name);
                 }
             },
             renderLayout: {
-                value: function () {
+                value: function() {
                     this.container.html(this.renderTemplate('layout'));
                     this.places = {
                         title: this.container.find('[data-placeholder="title"]'),
@@ -49,7 +49,7 @@ define([
                 }
             },
             setupUI: {
-                value: function () {
+                value: function() {
                     if (this.hasState('narratives') && this.getState('narratives').length > 0) {
                         this.buttonbar = Object.create(Buttonbar).init({
                             container: this.container.find('[data-placeholder="buttonbar"]')
@@ -57,48 +57,49 @@ define([
                         this.buttonbar
                             .clear()
 
-                            /*.addRadioToggle({
-                             buttons: [
-                             {
-                             label: 'Slider',
-                             active: true,
-                             class: 'btn-kbase',
-                             callback: function (e) {
-                             this.view = 'slider';
-                             this.refresh();
-                             }.bind(this)
-                             },
-                             {
-                             label: 'Table',
-                             class: 'btn-kbase',
-                             callback: function (e) {
-                             this.view = 'table';
-                             this.refresh();
-                             }.bind(this)
-                             }]
-                             })
-                             */
-                            .addInput({
-                                placeholder: 'Search',
-                                place: 'end',
-                                onkeyup: function (e) {
-                                    // little hack to make sure the public narratives is opened up.
-                                    var collapse = this.places.title, id;
-                                    if (collapse.hasClass('collapsed')) {
-                                        id = collapse.attr('data-target');
-                                        $(id).collapse('show');
-                                    }
+                        /*.addRadioToggle({
+                         buttons: [
+                         {
+                         label: 'Slider',
+                         active: true,
+                         class: 'btn-kbase',
+                         callback: function (e) {
+                         this.view = 'slider';
+                         this.refresh();
+                         }.bind(this)
+                         },
+                         {
+                         label: 'Table',
+                         class: 'btn-kbase',
+                         callback: function (e) {
+                         this.view = 'table';
+                         this.refresh();
+                         }.bind(this)
+                         }]
+                         })
+                         */
+                        .addInput({
+                            placeholder: 'Search',
+                            place: 'end',
+                            onkeyup: function(e) {
+                                // little hack to make sure the public narratives is opened up.
+                                var collapse = this.places.title,
+                                    id;
+                                if (collapse.hasClass('collapsed')) {
+                                    id = collapse.attr('data-target');
+                                    $(id).collapse('show');
+                                }
 
-                                    this.filterState({
-                                        search: $(e.target).val()
-                                    });
-                                }.bind(this)
-                            });
+                                this.filterState({
+                                    search: $(e.target).val()
+                                });
+                            }.bind(this)
+                        });
                     }
                 }
             },
             render: {
-                value: function () {
+                value: function() {
                     // Generate initial view based on the current state of this widget.
                     // Head off at the pass -- if not logged in, can't show profile.
                     if (this.error) {
@@ -120,24 +121,24 @@ define([
                 }
             },
             filterState: {
-                value: function (options) {
+                value: function(options) {
                     if (!options.search || options.search.length === 0) {
                         this.setState('narrativesFiltered', this.getState('narratives'));
                         return;
                     }
                     var searchRe = new RegExp(options.search, 'i'),
-                        nar = this.getState('narratives').filter(function (x) {
+                        nar = this.getState('narratives').filter(function(x) {
                             if (
                                 x.workspace.metadata.narrative_nice_name.match(searchRe)
 
                                 ||
 
-                                 x.workspace.owner.match(searchRe)
+                                x.workspace.owner.match(searchRe)
 
                                 ||
 
                                 (x.object.metadata.cellInfo &&
-                                    (function (apps) {
+                                    (function(apps) {
                                         for (var i in apps) {
                                             var app = apps[i];
                                             if (app.match(searchRe) || this.getAppName(app).match(searchRe)) {
@@ -149,7 +150,7 @@ define([
                                 ||
 
                                 (x.object.metadata.cellInfo &&
-                                    (function (methods) {
+                                    (function(methods) {
                                         for (var i in methods) {
                                             var method = methods[i];
                                             if (method.match(searchRe) || this.getMethodName(method).match(searchRe)) {
@@ -158,7 +159,7 @@ define([
                                         }
                                     }.bind(this))(Object.keys(x.object.metadata.cellInfo.method)))
 
-                                ) {
+                            ) {
                                 return true;
                             } else {
                                 return false;
@@ -168,11 +169,11 @@ define([
                 }
             },
             onStateChange: {
-                value: function () {
-                    var count = this.doState('narratives', function (x) {
+                value: function() {
+                    var count = this.doState('narratives', function(x) {
                         return x.length;
                     }, null);
-                    var filtered = this.doState('narrativesFiltered', function (x) {
+                    var filtered = this.doState('narrativesFiltered', function(x) {
                         return x.length;
                     }, null);
 
@@ -190,12 +191,19 @@ define([
                 }
             },
             setInitialState: {
-                value: function (options) {
+                value: function(options) {
                     return this.getNarratives({
-                        showDeleted: 0,
-                        excludeGlobal: 0
-                    })
-                        .then(function (narratives) {
+                            showDeleted: 0,
+                            excludeGlobal: 0
+                        })
+                        .then(function(narratives) {
+                            var username = this.runtime.getService('session').getUsername();
+                            narratives = narratives.filter(function(x) {
+                                if (x.workspace.globalread === 'r') {
+                                    return true;
+                                }
+                                return false;
+                            }.bind(this));
                             this.setState('narratives', narratives);
                             this.setState('narrativesFiltered', narratives);
                         }.bind(this));
