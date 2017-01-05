@@ -198,6 +198,9 @@ define([
                         })
                         .then(function(narratives) {
                             narratives = narratives.filter(function(x) {
+                                // Show only narratives which are public, no matter the 
+                                // other conditions (e.g. may be owned by this user,
+                                // may be shared with this user as well.)
                                 if (x.workspace.globalread === 'r') {
                                     return true;
                                 }
