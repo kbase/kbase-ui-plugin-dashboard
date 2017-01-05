@@ -141,19 +141,19 @@
         <div class="-footer">
             <div style="display:inline-block; width: 100%;text-align: center;">
                 {% if narrative.workspace.user_permission == 'r' %}
-                    <span class="fa fa-minus dimmed" style="opacity: 0.4;" data-toggle="tooltip" data-placement="auto" title="Sharing information not available for this read-only Narrative" data-container="body"></span> 
+                    <span class="fa fa-minus dimmed" style="opacity: 0.4;" data-toggle="tooltip" data-placement="auto" title="Sharing information not available for this Narrative, because it is shared with you as read-only." data-container="body"></span> 
                 {% else %} 
                     {% if narrative.permissions|length == 0 %}
                         <span data-toggle="tooltip" data-placement="auto" title="This narrative has been shared with you, but not anyone else." data-container="body">
                             1 <span class="fa fa-share-alt"></span>
                         </span>
                     {% elif narrative.permissions|length == 1 %}
-                        <span data-toggle="tooltip" data-placement="auto" title="This narrative has been shared with you and one other user." data-container="body">
+                        <span data-toggle="tooltip" data-placement="auto" title="This narrative has been shared with 2 users, including you." data-container="body">
                                 {{ narrative.permissions | length + 1}} 
                                 <span class="fa fa-share-alt"></span>
                         </span>
                     {% else %}
-                        <span data-toggle="tooltip" data-placement="auto" title="This narrative has been shared with you and {{narrative.permissions|length}} other users." data-container="body">
+                        <span data-toggle="tooltip" data-placement="auto" title="This narrative has been shared with {{narrative.permissions|length + 1}} users, including you." data-container="body">
                                 {{ narrative.permissions | length + 1}} 
                                 <span class="fa fa-share-alt"></span>
                         </span>

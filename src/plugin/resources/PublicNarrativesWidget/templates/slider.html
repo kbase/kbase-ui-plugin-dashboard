@@ -147,20 +147,30 @@
                 {% elif narrative.workspace.user_permission == 'r' %}
                     <span class="fa fa-minus dimmed" style="opacity: 0.4;" data-toggle="tooltip" data-placement="auto" title="Sharing information not available for this read-only Narrative" data-container="body"></span> 
                 {% else %}
+                    {# Note: narrative sharing permissions are not reported for the current user -- we must grok that from other 
+                       properties. E.g. in this case we know the current user permission is 'w', which is only possible when then 
+                       narrative has been shared thus. #}
                     {% if narrative.permissions|length == 0 %}
-                        <span data-toggle="tooltip" data-placement="auto" title="This narrative has not been shared with you, but not anyone else." data-container="body">
+                        <span data-toggle="tooltip" data-placement="auto" title="This narrative has been shared with you, but not anyone else." data-container="body">
                                 1 <span class="fa fa-share-alt"></span>
                         </span>
                     {% elif narrative.permissions|length == 1 %}
-                        <span data-toggle="tooltip" data-placement="auto" title="This narrative has been shared with you and one other user." data-container="body">
-                                    {{ narrative.permissions | length + 1}} 
+                        <span data-toggle="tooltip" data-placement="auto" title="This narrative has been shared with 2 users, including you." data-container="body">
+                                    {{ narrative.permissions | length + 1}}
                                     <span class="fa fa-share-alt"></span>
                         </span> 
                     {% else %}
-                        <span data-toggle="tooltip" data-placement="auto" title="This narrative has been shared with you and {{narrative.permissions|length}} other users." data-container="body">
-                                    {{ narrative.permissions | length + 1}} 
-                                    <span class="fa fa-share-alt"></span>
-                        </span>
+                        {% if env.loggedInUser == narrative.workspace.owner %} 
+                            <span data-toggle="tooltip" data-placement="auto" title="This narrative is owned by you and shared with {{narrative.permissions|length}} other users." data-container="body">
+                                {{ narrative.permissions | length }}  
+                                <span class="fa fa-share-alt"></span>
+                            </span>
+                        {% else %}
+                            <span data-toggle="tooltip" data-placement="auto" title="This narrative has been shared with {{narrative.permissions|length + 1}} users, including you." data-container="body">
+                                {{ narrative.permissions | length + 1}}  
+                                <span class="fa fa-share-alt"></span>
+                            </span>
+                        {% endif %}
                     {% endif %} 
                 {% endif %} 
                 {% if narrative.workspace.globalread == 'r' or narrative.workspace.globalread == 'w' %}
