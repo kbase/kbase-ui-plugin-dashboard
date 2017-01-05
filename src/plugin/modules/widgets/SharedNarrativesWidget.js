@@ -6,17 +6,17 @@
  white: true
  */
 define([
-    'jquery',
-    'kb_dashboard_widget_base',
-    'kb/widget/widgets/buttonBar',
-    'bluebird',
-    'bootstrap'
-],
-    function ($, DashboardWidget, Buttonbar, Promise) {
+        'jquery',
+        'kb_dashboard_widget_base',
+        'kb/widget/widgets/buttonBar',
+        'bluebird',
+        'bootstrap'
+    ],
+    function($, DashboardWidget, Buttonbar, Promise) {
         "use strict";
         var widget = Object.create(DashboardWidget, {
             init: {
-                value: function (cfg) {
+                value: function(cfg) {
                     cfg.name = 'SharedNarrativesWidget';
                     cfg.title = 'Narratives Shared with You';
                     this.DashboardWidget_init(cfg);
@@ -28,17 +28,17 @@ define([
                 }
             },
             getAppName: {
-                value: function (name) {
+                value: function(name) {
                     return this.getState(['appsMap', name, 'name'], name);
                 }
             },
             getMethodName: {
-                value: function (name) {
+                value: function(name) {
                     return this.getState(['methodsMap', name, 'name'], name);
                 }
             },
             setupUI: {
-                value: function () {
+                value: function() {
                     if (this.hasState('narratives') && this.getState('narratives').length > 0) {
                         this.buttonbar = Object.create(Buttonbar).init({
                             container: this.container.find('[data-placeholder="buttonbar"]')
@@ -48,7 +48,7 @@ define([
                             .addInput({
                                 placeholder: 'Search',
                                 place: 'end',
-                                onkeyup: function (e) {
+                                onkeyup: function(e) {
                                     this.setParam('filter', $(e.target).val());
                                 }.bind(this)
                             });
@@ -56,7 +56,7 @@ define([
                 }
             },
             render: {
-                value: function () {
+                value: function() {
                     // Generate initial view based on the current state of this widget.
                     // Head off at the pass -- if not logged in, can't show profile.
                     if (this.error) {
@@ -79,7 +79,7 @@ define([
                 }
             },
             filterState: {
-                value: function () {
+                value: function() {
                     var search = this.getParam('filter');
                     if (!search || search.length === 0) {
                         this.setState('narrativesFiltered', this.getState('narratives'));
@@ -90,29 +90,29 @@ define([
                     } catch (ex) {
                         // User entered invalid search expression. How to give the user feedback?
                     }
-                    var nar = this.getState('narratives').filter(function (x) {
-                        if (x.workspace.metadata.narrative_nice_name.match(searchRe) 
-                        
+                    var nar = this.getState('narratives').filter(function(x) {
+                        if (x.workspace.metadata.narrative_nice_name.match(searchRe)
+
                             ||
-                        
+
                             x.workspace.owner.match(searchRe)
-                            
+
                             ||
-                            
+
                             (x.object.metadata.cellInfo &&
-                                (function (apps) {
+                                (function(apps) {
                                     for (var i in apps) {
                                         var app = apps[i];
                                         if (app.match(searchRe) || this.getAppName(app).match(searchRe)) {
                                             return true;
                                         }
                                     }
-                                }.bind(this))(Object.keys(x.object.metadata.cellInfo.app))) 
-                                    
+                                }.bind(this))(Object.keys(x.object.metadata.cellInfo.app)))
+
                             ||
-                            
+
                             (x.object.metadata.cellInfo &&
-                                (function (methods) {
+                                (function(methods) {
                                     for (var i in methods) {
                                         var method = methods[i];
                                         if (method.match(searchRe) || this.getMethodName(method).match(searchRe)) {
@@ -120,10 +120,9 @@ define([
                                         }
                                     }
                                 }.bind(this))(Object.keys(x.object.metadata.cellInfo.method)))
-                                    
-                           
-                            )                        
-                        {
+
+
+                        ) {
                             return true;
                         } else {
                             return false;
@@ -133,11 +132,11 @@ define([
                 }
             },
             onStateChange: {
-                value: function () {
-                    var count = this.doState('narratives', function (x) {
+                value: function() {
+                    var count = this.doState('narratives', function(x) {
                         return x.length;
                     }, null);
-                    var filtered = this.doState('narrativesFiltered', function (x) {
+                    var filtered = this.doState('narrativesFiltered', function(x) {
                         return x.length;
                     }, null);
 
@@ -148,16 +147,16 @@ define([
                 }
             },
             getAppsx: {
-                value: function () {
+                value: function() {
                     var methodStore = new NarrativeMethodStore(this.runtime.getConfig('services.narrative_method_store.url'), {
                         token: this.runtime.service('session').getAuthToken()
                     });
                     return Promise.all([
-                        methodStore.list_apps({})
-                    ])
-                        .spread(function (apps) {
+                            methodStore.list_apps({})
+                        ])
+                        .spread(function(apps) {
                             var appMap = {};
-                            apps.forEach(function (app) {
+                            apps.forEach(function(app) {
                                 appMap[app.id] = app;
                             });
                             return appMap;
@@ -165,22 +164,27 @@ define([
                 }
             },
             setInitialState: {
-                value: function (options) {
+                value: function(options) {
 
                     return this.getNarratives({
-                        showDeleted: 0
-                    })
-                        .then(function (narratives) {
+                            showDeleted: 0
+                        })
+                        .then(function(narratives) {
                             var username = this.runtime.getService('session').getUsername();
                             narratives = narratives
-                                .filter(function (narrative) {
+                                .filter(function(narrative) {
+                                    // Filter out narratives that are owned by the
+                                    // current user, and which the current user has no
+                                    // special permissions (e.g. for public narratives 
+                                    // not shared, the user_permission will be 'n'
+                                    // even though the user can "read" it.)
                                     if (narrative.workspace.owner === username ||
                                         narrative.workspace.user_permission === 'n') {
                                         return false;
                                     }
                                     return true;
                                 }.bind(this));
-                            
+
                             this.setState('narratives', narratives);
                             this.filterState();
                         }.bind(this));

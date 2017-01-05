@@ -164,7 +164,6 @@ define([
                         owners: [this.runtime.getService('session').getUsername()]
                     })
                         .then(function (narratives) {                            
-                            
                             this.setState('narratives', narratives);
                             this.filterNarratives();
                         }.bind(this));
