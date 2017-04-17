@@ -17,18 +17,12 @@ source:
             module: kb_dashboard_widget_apps
             file: widgets/AppsWidget
             css: true
-#        -
-#            module: kb_widget_dashboard_apps
-#            file: "widgets/AppsWidget"
         -
             module: kb_dashboard_widget_base
             file: widgets/DashboardWidget
         -
             module: kb_dashboard_widget_collaborators
             file: widgets/CollaboratorsWidget
-#        -
-#            module: kb_dashboard_widget_data
-#            file: "widgets/DataWidget"
         -
             module: kb_dashboard_widget_metrics
             file: "widgets/MetricsWidget"
@@ -62,10 +56,6 @@ install:
             module: kb_dashboard_widget_collaborators
             id: dashboardCollaborators
             type: object
-##        -
-#            module: kb_dashboard_widget_data
-#            id: dashboardData
-#            type: factory
         -
             module: kb_dashboard_widget_metrics
             id: dashboardMetrics
