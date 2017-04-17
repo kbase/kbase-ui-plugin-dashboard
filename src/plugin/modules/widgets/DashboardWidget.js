@@ -1,5 +1,3 @@
-/*global define*/
-/*jslint white:true,browser:true */
 define([
     'nunjucks',
     'jquery',
@@ -382,9 +380,9 @@ define([
             }
         },
         // Commonly used data access and munging methods
-        
+
         getTag: {
-            value: function () {
+            value: function() {
                 if (this.runtime.config('deploy.environment') === 'prod') {
                     return 'release';
                 } else {
