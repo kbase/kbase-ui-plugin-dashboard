@@ -9,71 +9,38 @@ package:
 source:
     ## sources are relative to build/plugins/PACKAGE/source/javascript
     ## NB: need to quote file names, otherwise 
-    modules:
-        -
-            module: kb_dashboard_panel
-            file: dashboardPanel
-        -
-            module: kb_dashboard_widget_apps
-            file: widgets/AppsWidget
-            css: true
-        -
-            module: kb_dashboard_widget_base
-            file: widgets/DashboardWidget
-        -
-            module: kb_dashboard_widget_collaborators
-            file: widgets/CollaboratorsWidget
-        -
-            module: kb_dashboard_widget_metrics
-            file: "widgets/MetricsWidget"
-        -
-            module: kb_dashboard_widget_narratives
-            file: widgets/NarrativesWidget
-        -
-            module: kb_dashboard_widget_publicNarratives
-            file: widgets/PublicNarrativesWidget
-        -
-            module: kb_dashboard_widget_sharedNarratives
-            file: widgets/SharedNarrativesWidget
-        -
-            module: kb_dashboard_widget_profile
-            file: "widgets/ProfileWidget"
-       
+    modules:       
     styles:
         -
             file: styles.css
 install:
     widgets:
         -
-            module: kb_dashboard_panel
+            module: ./dashboardPanel
             id: dashboardPanel
             type: factory
         -
-            module: kb_dashboard_widget_apps
-            id: dashboardApps
-            type: factory
-        -
-            module: kb_dashboard_widget_collaborators
+            module: ./widgets/CollaboratorsWidget
             id: dashboardCollaborators
             type: object
         -
-            module: kb_dashboard_widget_metrics
+            module: ./widgets/MetricsWidget
             id: dashboardMetrics
             type: object
         -
-            module: kb_dashboard_widget_narratives
+            module: ./widgets/NarrativesWidget
             id: dashboardNarratives
             type: object
         -
-            module: kb_dashboard_widget_publicNarratives
+            module: ./widgets/PublicNarrativesWidget
             id: dashboardPublicNarratives
             type: object
         -
-            module: kb_dashboard_widget_sharedNarratives
+            module: ./widgets/SharedNarrativesWidget 
             id: dashboardSharedNarratives
             type: object
         -
-            module: kb_dashboard_widget_profile
+            module: ./widgets/ProfileWidget
             id: dashboardProfile
             type: object
             
