@@ -3,7 +3,7 @@
         <div class="col-md-4">
 
             {%if state.userProfile.userRecord.profile.userdata.avatar.gravatar_default and state.userProfile.userRecord.profile.userdata.email %}
-            <img src="{{state.userProfile.userRecord.profile.userdata.email | gravatar(200," pg ",state.userProfile.userRecord.profile.userdata.avatar.gravatar_default)}}" width="95%" style="max-width: 300px;"> {% else %}
+            <img src="{{state.userProfile.userRecord.profile.userdata.email | gravatar(200, 'pg',state.userProfile.userRecord.profile.userdata.avatar.gravatar_default)}}" width="95%" style="max-width: 300px;"> {% else %}
             <center><img src="{{env.pluginPath}}/images/nouserpic.png" width="95%" style="max-width: 300px;"></center>
             {% endif %}
 
@@ -49,7 +49,8 @@
             {% elif state.profileCompletion.status == "complete" %} {{ alert("Congratulations, your profile is complete!", type="success") }} {% endif %}
 
             <div style="text-align: center; margin-top: 12px;">
-                <a role="button" href="#auth2/account?tab=profile" type="button" class="btn btn-default" data-button="create-profile">Visit your Profile Page to update your KBase profile<span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span></a>
+                <a role="button" href="#auth2/account?tab=profile" type="button" class="btn btn-default" data-button="create-profile">Edit Your Profile</span></a>
+                <a role="button" href="#people" type="button" class="btn btn-default" data-button="create-profile">View your Profile</span></a>
             </div>
         </div>
     </div>
