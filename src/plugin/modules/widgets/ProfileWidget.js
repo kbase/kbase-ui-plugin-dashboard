@@ -2,12 +2,12 @@ define([
     'bluebird',
     './DashboardWidget',
     'kb_common/utils'
-], function(Promise, DashboardWidget, Utils) {
+], function (Promise, DashboardWidget, Utils) {
     'use strict';
 
     var widget = Object.create(DashboardWidget, {
         init: {
-            value: function(cfg) {
+            value: function (cfg) {
                 cfg.name = 'ProfileWidget';
                 cfg.title = 'Your Profile';
                 this.DashboardWidget_init(cfg);
@@ -16,16 +16,16 @@ define([
             }
         },
         afterStart: {
-            value: function() {
+            value: function () {
                 // NB: this uses the old original state-on-object rather than
                 // the set/get/has state mechanism that most like-minded
                 // widgets use.
                 this.runtime.service('userprofile').onChange(
-                    function(profile) {
+                    function (profile) {
                         this.setState('userProfile', profile);
                         this.setState('profileCompletion', this.calcProfileCompletion(profile));
                     }.bind(this),
-                    function(err) {
+                    function (err) {
                         this.setError(err);
                     }.bind(this)
                 );
@@ -34,20 +34,20 @@ define([
             }
         },
         setInitialState: {
-            value: function(options) {
-                return new Promise(function(resolve, reject, notify) {
+            value: function (options) {
+                return new Promise(function (resolve, reject, notify) {
                     if (!this.runtime.getService('session').isLoggedIn()) {
                         resolve();
                         return;
                     }
 
                     this.runtime.service('userprofile').whenChange()
-                        .then(function(profile) {
+                        .then(function (profile) {
                             this.setState('userProfile', profile);
                             this.setState('profileCompletion', this.calcProfileCompletion(profile));
                             resolve();
                         }.bind(this))
-                        .catch(function(err) {
+                        .catch(function (err) {
                             console.log('ERROR');
                             console.log(err);
                             reject(err);
@@ -57,7 +57,7 @@ define([
             }
         },
         onCreateTemplateContext: {
-            value: function(context) {
+            value: function (context) {
                 return Utils.merge(Utils.merge({}, context), {
                     env: {
                         lists: this.lists
@@ -66,7 +66,7 @@ define([
             }
         },
         calcProfileCompletion: {
-            value: function(profile) {
+            value: function (profile) {
                 if (profile) {
                     var completion = profile.calcProfileCompletion();
                     if (completion.status === 'complete') {
@@ -78,7 +78,7 @@ define([
             }
         },
         getProfileStatus: {
-            value: function() {
+            value: function () {
                 if (this.status === 'error') {
                     return 'error';
                 } else {
@@ -91,7 +91,7 @@ define([
             }
         },
         render: {
-            value: function() {
+            value: function () {
                 // Generate initial view based on the current state of this widget.
                 // Head off at the pass -- if not logged in, can't show profile.
                 if (!this.runtime.getService('session').isLoggedIn()) {
@@ -105,31 +105,31 @@ define([
                 } else {
                     if (this.isState('userProfile')) {
                         switch (this.getState('userProfile').getProfileStatus()) {
-                            case 'profile':
-                                // NORMAL PROFILE 
-                                // Title can be be based on logged in user infor or the profile.
-                                // set window title.
-                                try {
-                                    this.places.title.html(this.widgetTitle);
-                                    this.places.content.html(this.renderTemplate('view'));
-                                } catch (ex) {
-                                    this.places.title.html(this.widgetTitle);
-                                    this.places.content.html('ERROR: ' + ex);
-                                }
-                                break;
-                            case 'stub':
-                                // STUB PROFILE
+                        case 'profile':
+                            // NORMAL PROFILE 
+                            // Title can be be based on logged in user infor or the profile.
+                            // set window title.
+                            try {
                                 this.places.title.html(this.widgetTitle);
-                                this.places.content.html(this.renderTemplate('stub_profile'));
-                                break;
-                            case 'none':
-                                // NOT FOUND
-                                // no profile, no basic aaccount info
-                                this.places.title.html('User Not Found');
-                                this.places.content.html(this.renderTemplate('no_user'));
-                                break;
-                            default:
-                                this.renderErrorView('Invalid profile state "' + this.getState('userProfile').getProfileStatus() + '"');
+                                this.places.content.html(this.renderTemplate('view'));
+                            } catch (ex) {
+                                this.places.title.html(this.widgetTitle);
+                                this.places.content.html('ERROR: ' + ex);
+                            }
+                            break;
+                        case 'stub':
+                            // STUB PROFILE
+                            this.places.title.html(this.widgetTitle);
+                            this.places.content.html(this.renderTemplate('stub_profile'));
+                            break;
+                        case 'none':
+                            // NOT FOUND
+                            // no profile, no basic aaccount info
+                            this.places.title.html('User Not Found');
+                            this.places.content.html(this.renderTemplate('no_user'));
+                            break;
+                        default:
+                            this.renderErrorView('Invalid profile state "' + this.getState('userProfile').getProfileStatus() + '"');
                         }
                         return this;
                     }
