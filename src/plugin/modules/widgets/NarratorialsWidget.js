@@ -47,15 +47,6 @@ define([
                     });
                     this.buttonbar
                         .clear()
-                        /*.addButton({
-                            name: 'newnarrative',
-                            label: 'New Narrative',
-                            icon: 'plus-circle',
-                            style: 'primary',
-                            class: 'btn-kbase',
-                            url: '#/narrativemanager/new',
-                            external: true
-                        })*/
                         .addInput({
                             placeholder: 'Search Narratorials',
                             place: 'end',
