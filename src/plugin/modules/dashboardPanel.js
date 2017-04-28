@@ -3,7 +3,7 @@ define([
     'kb_common/html',
     'kb_common/observed',
     'kb_widget/widgetSet'
-], function(Promise, html, observed, fWidgetSet) {
+], function (Promise, html, observed, fWidgetSet) {
     'use strict';
 
     function widget(config) {
@@ -12,12 +12,12 @@ define([
             viewState = observed.make();
 
         function renderPanel() {
-            return new Promise(function(resolve) {
+            return new Promise(function (resolve) {
                 // View stat is a local state machine for this view.
                 var div = html.tag('div'),
                     panel = div({ class: 'kbase-view kbase-dashboard-view container-fluid', 'data-kbase-view': 'social' }, [
                         div({ class: 'row' }, [
-                            div({ class: 'col-sm-8' }, [
+                            div({ class: 'col-sm-12' }, [
                                 div({
                                     id: widgetSet.addWidget('dashboardNarratives', {
                                         viewState: viewState
@@ -30,16 +30,6 @@ define([
                                 }),
                                 div({
                                     id: widgetSet.addWidget('dashboardPublicNarratives', {
-                                        viewState: viewState
-                                    })
-                                })
-                                //div({id: widgetSet.addWidget('dashboardApps', {
-                                //        viewState: viewState
-                                //    })})
-                            ]),
-                            div({ class: 'col-sm-4' }, [
-                                div({
-                                    id: widgetSet.addWidget('dashboardProfile', {
                                         viewState: viewState
                                     })
                                 }),
@@ -57,7 +47,6 @@ define([
                         ])
                     ]);
                 resolve({
-                    // title: 'Dashboard for ' + runtime.getService('session').getUsername(),
                     title: 'Your Dashboard',
                     content: panel
                 });
@@ -66,18 +55,18 @@ define([
 
         // API 
         function attach(node) {
-            return Promise.try(function() {
+            return Promise.try(function () {
                 mount = node;
                 container = document.createElement('div');
                 mount.appendChild(container);
                 return renderPanel()
-                    .then(function(rendered) {
+                    .then(function (rendered) {
                         container.innerHTML = rendered.content;
                         runtime.send('ui', 'setTitle', rendered.title);
                         // create widgets.
                         return widgetSet.init();
                     })
-                    .then(function() {
+                    .then(function () {
                         return widgetSet.attach(container);
                     });
             });
@@ -108,7 +97,7 @@ define([
     }
 
     return {
-        make: function(config) {
+        make: function (config) {
             return widget(config);
         }
     };
