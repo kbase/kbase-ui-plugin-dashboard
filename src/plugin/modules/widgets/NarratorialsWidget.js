@@ -8,8 +8,9 @@ define([
     var widget = Object.create(DashboardWidget, {
         init: {
             value: function(cfg) {
-                cfg.name = 'NarrativesWidget';
-                cfg.title = 'Your Narratives';
+            console.log("INITS NARRATORIALS WIDGET");
+                cfg.name = 'NarratorialsWidget';
+                cfg.title = 'Tutorial Narratives';
                 this.DashboardWidget_init(cfg);
 
                 return this;
@@ -46,7 +47,7 @@ define([
                     });
                     this.buttonbar
                         .clear()
-                        .addButton({
+                        /*.addButton({
                             name: 'newnarrative',
                             label: 'New Narrative',
                             icon: 'plus-circle',
@@ -54,9 +55,9 @@ define([
                             class: 'btn-kbase',
                             url: '#/narrativemanager/new',
                             external: true
-                        })
+                        })*/
                         .addInput({
-                            placeholder: 'Search Your Narratives',
+                            placeholder: 'Search Narratorials',
                             place: 'end',
                             onkeyup: function(e) {
                                 this.setParam('filter', $(e.target).val());
@@ -152,8 +153,9 @@ define([
         setInitialState: {
             value: function(options) {
                 return this.getNarratives({
-                        showDeleted: 0,
-                        owners: [this.runtime.getService('session').getUsername()]
+                        //showDeleted: 0,
+                        //owners: [this.runtime.getService('session').getUsername()]
+                        meta : { narratorial : 1 }
                     })
                     .then(function(narratives) {
                         this.setState('narratives', narratives);

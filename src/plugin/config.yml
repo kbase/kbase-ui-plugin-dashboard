@@ -8,8 +8,8 @@ package:
     version: 0.0.1
 source:
     ## sources are relative to build/plugins/PACKAGE/source/javascript
-    ## NB: need to quote file names, otherwise 
-    modules:       
+    ## NB: need to quote file names, otherwise
+    modules:
     styles:
         -
             file: styles.css
@@ -36,14 +36,18 @@ install:
             id: dashboardPublicNarratives
             type: object
         -
-            module: ./widgets/SharedNarrativesWidget 
+            module: ./widgets/NarratorialsWidget
+            id: dashboardNarratorials
+            type: object
+        -
+            module: ./widgets/SharedNarrativesWidget
             id: dashboardSharedNarratives
             type: object
         -
             module: ./widgets/ProfileWidget
             id: dashboardProfile
             type: object
-            
+
     routes:
         -
             path: ['dashboard']

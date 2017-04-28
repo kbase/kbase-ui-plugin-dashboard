@@ -24,6 +24,11 @@ define([
                                     })
                                 }),
                                 div({
+                                    id: widgetSet.addWidget('dashboardNarratorials', {
+                                        viewState: viewState
+                                    })
+                                }),
+                                div({
                                     id: widgetSet.addWidget('dashboardSharedNarratives', {
                                         viewState: viewState
                                     })
@@ -64,7 +69,7 @@ define([
             });
         }
 
-        // API 
+        // API
         function attach(node) {
             return Promise.try(function() {
                 mount = node;

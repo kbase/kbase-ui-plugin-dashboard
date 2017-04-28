@@ -167,7 +167,7 @@ define([
                             .filter(function(narrative) {
                                 // Filter out narratives that are owned by the
                                 // current user, and which the current user has no
-                                // special permissions (e.g. for public narratives 
+                                // special permissions (e.g. for public narratives
                                 // not shared, the user_permission will be 'n'
                                 // even though the user can "read" it.)
                                 if (narrative.workspace.owner === username ||
