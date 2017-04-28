@@ -48,7 +48,7 @@ define([
                     this.buttonbar
                         .clear()
                         .addInput({
-                            placeholder: 'Search Narratorials',
+                            placeholder: 'Search Tutorials',
                             place: 'end',
                             onkeyup: function(e) {
                                 this.setParam('filter', $(e.target).val());
