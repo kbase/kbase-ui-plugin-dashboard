@@ -9,7 +9,7 @@ define([
     'kb_common/logger',
     'kb_common/gravatar',
     'kb_plugin_dashboard'
-], function(
+], function (
     nunjucks,
     $,
     Promise,
@@ -25,7 +25,7 @@ define([
         // The init function interfaces this object with the caller, and sets up any 
         // constants and constant state.
         DashboardWidget_init: {
-            value: function(cfg) {
+            value: function (cfg) {
                 this._generatedId = 0;
 
                 // First we get the global config.
@@ -114,31 +114,31 @@ define([
                 this.templates.env = new nunjucks.Environment(loaders, {
                     autoescape: false
                 });
-                this.templates.env.addFilter('roleLabel', function(role) {
+                this.templates.env.addFilter('roleLabel', function (role) {
                     if (this.listMaps['userRoles'][role]) {
                         return this.listMaps['userRoles'][role].label;
                     }
                     return role;
                 }.bind(this));
-                this.templates.env.addFilter('userClassLabel', function(userClass) {
+                this.templates.env.addFilter('userClassLabel', function (userClass) {
                     if (this.listMaps['userClasses'][userClass]) {
                         return this.listMaps['userClasses'][userClass].label;
                     }
                     return userClass;
                 }.bind(this));
-                this.templates.env.addFilter('titleLabel', function(title) {
+                this.templates.env.addFilter('titleLabel', function (title) {
                     if (this.listMaps['userTitles'][title]) {
                         return this.listMaps['userTitles'][title].label;
                     }
                     return title;
                 }.bind(this));
-                this.templates.env.addFilter('permissionLabel', function(permissionFlag) {
+                this.templates.env.addFilter('permissionLabel', function (permissionFlag) {
                     if (this.listMaps['permissionFlags'][permissionFlag]) {
                         return this.listMaps['permissionFlags'][permissionFlag].label;
                     }
                     return permissionFlag;
                 }.bind(this));
-                this.templates.env.addFilter('length2', function(x) {
+                this.templates.env.addFilter('length2', function (x) {
                     if (x) {
                         if (x instanceof Array) {
                             return x.length;
@@ -150,17 +150,17 @@ define([
                 }.bind(this));
                 // create a gravatar-url out of an email address and a 
                 // default option.
-                this.templates.env.addFilter('gravatar', function(email, size, rating, gdefault) {
+                this.templates.env.addFilter('gravatar', function (email, size, rating, gdefault) {
                     // TODO: http/https.
                     return gravatar.make().makeGravatarUrl(email, size, rating, gdefault);
                 }.bind(this));
-                this.templates.env.addFilter('kbmarkup', function(s) {
+                this.templates.env.addFilter('kbmarkup', function (s) {
                     if (s) {
                         return s.replace(/\n/g, '<br>');
                     }
                     return '';
                 });
-                this.templates.env.addFilter('unixNiceTime', function(dateString) {
+                this.templates.env.addFilter('unixNiceTime', function (dateString) {
                     if (dateString) {
                         var seconds = parseInt(dateString, 10);
                         //return '' + seconds;
@@ -170,13 +170,13 @@ define([
                         }
                     }
                 });
-                this.templates.env.addFilter('dateFormat', function(dateString) {
+                this.templates.env.addFilter('dateFormat', function (dateString) {
                     return Utils.niceElapsedTime(dateString);
                 }.bind(this));
-                this.templates.env.addFilter('jsDatestring', function(dateString) {
+                this.templates.env.addFilter('jsDatestring', function (dateString) {
                     return Utils.iso8601ToDate(dateString).toISOString();
                 }.bind(this));
-                this.templates.env.addFilter('niceRuntime', function(ms) {
+                this.templates.env.addFilter('niceRuntime', function (ms) {
                     if (!ms) {
                         return '';
                     }
@@ -198,19 +198,19 @@ define([
 
                     // return (days?days+'d':'') + (hours?' '+hours+'h':'') + (minutes?' '+minutes+'m':'') + (seconds && showSeconds?' '+seconds+'s':'')
                 }.bind(this));
-                this.templates.env.addFilter('defaultDash', function(x) {
+                this.templates.env.addFilter('defaultDash', function (x) {
                     if (x === null || x === undefined || (typeof x === 'string' && x.length === 0)) {
                         return '-';
                     }
                     return x;
                 });
-                this.templates.env.addFilter('isBlank', function(x) {
+                this.templates.env.addFilter('isBlank', function (x) {
                     if (x === null || x === undefined || (typeof x === 'string' && x.length === 0)) {
                         return true;
                     }
                     return false;
                 });
-                this.templates.env.addFilter('isEmpty', function(x) {
+                this.templates.env.addFilter('isEmpty', function (x) {
                     if (x === null || x === undefined || (typeof x === 'string' && x.length === 0)) {
                         return true;
                     }
@@ -222,9 +222,9 @@ define([
                     }
                     return false;
                 });
-                this.templates.env.addFilter('sort', function(x, prop) {
+                this.templates.env.addFilter('sort', function (x, prop) {
                     if (typeof x === 'object' && x.pop && x.push) {
-                        return x.sort(function(a, b) {
+                        return x.sort(function (a, b) {
                             if (prop) {
                                 a = a[prop];
                                 b = b[prop];
@@ -240,7 +240,7 @@ define([
                     }
                     return x;
                 });
-                this.templates.env.addFilter('plural', function(x, suffix) {
+                this.templates.env.addFilter('plural', function (x, suffix) {
                     if (typeof x === 'number') {
                         if (x !== 1) {
                             return suffix || 's';
@@ -249,15 +249,15 @@ define([
                     return '';
                 });
 
-                this.templates.env.addGlobal('randomNumber', function(from, to) {
+                this.templates.env.addGlobal('randomNumber', function (from, to) {
                     return Math.floor(from + Math.random() * (to - from));
                 });
 
-                this.templates.env.addGlobal('getConfig', function(prop) {
+                this.templates.env.addGlobal('getConfig', function (prop) {
                     return this.runtime.getConfig(prop);
                 }.bind(this));
 
-                this.templates.env.addFilter('methodPath', function(method) {
+                this.templates.env.addFilter('methodPath', function (method) {
                     var path = [];
                     if (method.namespace) {
                         path.push(method.namespace);
@@ -288,7 +288,7 @@ define([
                     widgetTitle: this.widgetTitle,
                     widgetName: this.widgetName,
                     docsite: this.runtime.getConfig('docsite'),
-                    getConfig: function(prop) {
+                    getConfig: function (prop) {
                         return this.runtime.getConfig(prop);
                     }.bind(this)
                 };
@@ -327,7 +327,7 @@ define([
             }
         },
         setupConfig: {
-            value: function() {
+            value: function () {
 
                 this.configs = [{}, this.initConfig, this.localConfig];
 
@@ -347,7 +347,7 @@ define([
             }
         },
         setupCoreApp: {
-            value: function() {
+            value: function () {
                 // Should be run after configuration changes.
                 // May touch parts of the widget object, so care should be taken
                 // to syncronize or just plain rebuild.
@@ -375,14 +375,14 @@ define([
             }
         },
         setupAuth: {
-            value: function() {
+            value: function () {
 
             }
         },
         // Commonly used data access and munging methods
 
         getTag: {
-            value: function() {
+            value: function () {
                 if (this.runtime.config('deploy.environment') === 'prod') {
                     return 'release';
                 } else {
@@ -393,7 +393,7 @@ define([
 
 
         getApps: {
-            value: function() {
+            value: function () {
                 var methodStore = new NarrativeMethodStore(this.runtime.getConfig('services.narrative_method_store.url'), {
                         token: this.runtime.service('session').getAuthToken()
                     }),
@@ -401,9 +401,9 @@ define([
                 return Promise.all([
                         methodStore.list_methods({ tag: tag })
                     ])
-                    .spread(function(release) {
+                    .spread(function (release) {
                         var appMap = {};
-                        release.forEach(function(app) {
+                        release.forEach(function (app) {
                             appMap[app.id] = {
                                 info: app,
                                 tag: tag
@@ -414,41 +414,8 @@ define([
                     }.bind(this));
             }
         },
-        // getMethods: {
-        //     value: function() {
-        //         var methodStore = new NarrativeMethodStore(this.runtime.getConfig('services.narrative_method_store.url'), {
-        //                 token: this.runtime.service('session').getAuthToken()
-        //             }),
-        //             tag;
-        //         if (this.runtime.config('deploy.environment') === 'prod') {
-        //             tag = 'release';
-        //         } else {
-        //             tag = 'dev';
-        //         }
-        //         return Promise.all([
-        //                 methodStore.list_methods({ tag: tag })
-        //             ])
-        //             .spread(function(methods) {
-        //                 var methodsMap = {};
-        //                 methods.forEach(function(method) {
-        //                     if (method.namesapce) {
-        //                         methodsMap[method.namespace + '/' + method.id] = {
-        //                             info: method,
-        //                             tag: tag
-        //                         };
-        //                     } else {
-        //                         methodsMap[method.id] = {
-        //                             info: method,
-        //                             tag: tag
-        //                         };
-        //                     }
-        //                 });
-        //                 return methodsMap;
-        //             }.bind(this));
-        //     }
-        // },
         getNarratives: {
-            value: function(params, filter) {
+            value: function (params, filter) {
                 return Promise.all([
                         this.kbservice.getNarratives({
                             params: params
@@ -456,9 +423,9 @@ define([
                         this.getApps()
                         // this.getMethods()
                     ])
-                    .spread(function(narratives, appsMap) {
-                        narratives.forEach(function(narrative) {
-                            narrative.methods = narrative.methods.map(function(method) {
+                    .spread(function (narratives, appsMap) {
+                        narratives.forEach(function (narrative) {
+                            narrative.methods = narrative.methods.map(function (method) {
                                 var methodInfo, methodId, legacy;
                                 if (method.module) {
                                     methodId = [method.module, method.id].join('/');
@@ -487,8 +454,8 @@ define([
                                 };
                             });
                         });
-                        narratives.forEach(function(narrative) {
-                            narrative.apps = narrative.apps.map(function(app) {
+                        narratives.forEach(function (narrative) {
+                            narrative.apps = narrative.apps.map(function (app) {
                                 if (!app.module) {
                                     return {
                                         name: app.id,
@@ -522,41 +489,41 @@ define([
                         }.bind(this));
                         return this.kbservice.getPermissions(narratives);
                     }.bind(this))
-                    .then(function(narratives) {
-                        return narratives.sort(function(a, b) {
+                    .then(function (narratives) {
+                        return narratives.sort(function (a, b) {
                             return b.object.saveDate.getTime() - a.object.saveDate.getTime();
                         });
                     });
             }
         },
         getAppName: {
-            value: function(name) {
+            value: function (name) {
                 return this.getState(['appsMap', name, 'name'], name);
             }
         },
         getMethodName: {
-            value: function(name) {
+            value: function (name) {
                 return this.getState(['methodsMap', name, 'name'], name);
             }
         },
         // LIFECYCLE
 
         go: {
-            value: function() {
+            value: function () {
                 // This creates the initial UI -- loads the css, inserts layout html.
                 // For simple widgets this is all the setup needed.
                 // For more complex one, parts of the UI may be swapped out.
                 this.renderUI();
                 this.renderWaitingView();
                 this.setInitialState()
-                    .then(function() {
+                    .then(function () {
                         this.status = 'dirty';
                         this.setupUI();
                     }.bind(this))
-                    .catch(function(err) {
+                    .catch(function (err) {
                         this.setError(err);
                     }.bind(this))
-                    .finally(function() {
+                    .finally(function () {
                         this.startSubscriptions();
                         if (this.afterStart) {
                             this.afterStart();
@@ -566,26 +533,26 @@ define([
             }
         },
         startSubscriptions: {
-            value: function() {
+            value: function () {
                 // Set up listeners for any kbase events we are interested in:
                 this.subscriptions = [];
-                this.subscriptions.push(this.runtime.recv('session', 'login.success', function(data) {
+                this.subscriptions.push(this.runtime.recv('session', 'login.success', function (data) {
                     this.onLoggedIn(data.session);
                 }.bind(this)));
 
-                this.subscriptions.push(this.runtime.recv('session', 'logout.success', function() {
+                this.subscriptions.push(this.runtime.recv('session', 'logout.success', function () {
                     this.onLoggedOut();
                 }.bind(this)));
 
-                this.subscriptions.push(this.runtime.recv('app', 'heartbeat', function(data) {
+                this.subscriptions.push(this.runtime.recv('app', 'heartbeat', function (data) {
                     this.handleHeartbeat(data);
                 }.bind(this)));
             }
         },
         stopSubscriptions: {
-            value: function() {
+            value: function () {
                 if (this.subscriptions) {
-                    this.subscriptions.forEach(function(sub) {
+                    this.subscriptions.forEach(function (sub) {
                         this.runtime.drop(sub);
                     }.bind(this));
                     this.subscriptions = [];
@@ -593,7 +560,7 @@ define([
             }
         },
         stop: {
-            value: function() {
+            value: function () {
                 this.stopSubscriptions();
                 if (this.onStop) {
                     this.onStop();
@@ -601,7 +568,7 @@ define([
             }
         },
         handleHeartbeat: {
-            value: function(data) {
+            value: function (data) {
                 if (this.refreshEnabled) {
                     var now = (new Date()).getTime();
                     if (!this.refreshLastTime) {
@@ -620,33 +587,33 @@ define([
             }
         },
         onHeartbeat: {
-            value: function(data) {
+            value: function (data) {
                 switch (this.status) {
-                    case 'dirty':
-                        this.status = 'clean';
-                        this.refresh()
-                            .catch(function(err) {
-                                this.setError(err);
-                            }.bind(this));
-                        break;
-                    case 'error':
-                        this.status = 'errorshown';
-                        this.renderError();
-                        break;
+                case 'dirty':
+                    this.status = 'clean';
+                    this.refresh()
+                        .catch(function (err) {
+                            this.setError(err);
+                        }.bind(this));
+                    break;
+                case 'error':
+                    this.status = 'errorshown';
+                    this.renderError();
+                    break;
                 }
             }
         },
         onRefreshbeat: {
-            value: function() {
+            value: function () {
                 this.setInitialState()
-                    .catch(function(err) {
+                    .catch(function (err) {
                         this.setError(err);
                     }.bind(this));
                 return this;
             }
         },
         setup: {
-            value: function() {
+            value: function () {
                 // does whatever the widget needs to do to set itself up
                 // after config, params, and auth have been configured.
                 this.kbservice = ServiceApi.make({ runtime: this.runtime });
@@ -655,7 +622,7 @@ define([
             }
         },
         renderUI: {
-            value: function() {
+            value: function () {
                 // No longer necessary -- the plugin config for the widget can
                 // specify whether a css should be loaded.
                 // this.loadCSS();
@@ -664,14 +631,14 @@ define([
             }
         },
         destroy: {
-            value: function() {
+            value: function () {
                 // tear down any events, etc. that are not attached
                 // to the local container.
             }
         },
         // CONFIG
         getConfig: {
-            value: function(key, defaultValue) {
+            value: function (key, defaultValue) {
                 var i;
                 for (i = 0; i < this.configs.length; i++) {
                     if (Utils.getProp(this.configs[i], key) !== undefined) {
@@ -682,13 +649,13 @@ define([
             }
         },
         setConfig: {
-            value: function(key, value) {
+            value: function (key, value) {
                 // sets it on the first config, which is the override config.
                 Utils.setProp(this.configs[0], key, value);
             }
         },
         hasConfig: {
-            value: function(key) {
+            value: function (key) {
                 for (var i = 0; i < this.configs.length; i++) {
                     if (Utils.getProp(this.configs[i], key) !== undefined) {
                         return true;
@@ -701,7 +668,7 @@ define([
         // Parameters are typically passed into the init() method, and represent external values that vary for each 
         // new object. Typical use cases are url query variables.
         setParam: {
-            value: function(path, value) {
+            value: function (path, value) {
                 Utils.setProp(this.params, path, value);
                 // this.refresh().done();
                 if (this.onParamChange) {
@@ -710,20 +677,20 @@ define([
             }
         },
         getParam: {
-            value: function(path, defaultValue) {
+            value: function (path, defaultValue) {
                 return Utils.getProp(this.params, path, defaultValue);
             }
         },
         onParamChange: {
-            value: function() {
+            value: function () {
                 if (this.filterState) {
                     this.filterState();
                 }
             }
         },
         refresh: {
-            value: function() {
-                return new Promise(function(resolve, reject, notify) {
+            value: function () {
+                return new Promise(function (resolve, reject, notify) {
                     this.render();
                     resolve();
                 }.bind(this));
@@ -732,7 +699,7 @@ define([
         // STATE CHANGES
 
         setState: {
-            value: function(path, value, norefresh) {
+            value: function (path, value, norefresh) {
                 if (!Utils.isEqual(Utils.getProp(this.state, path), value)) {
                     Utils.setProp(this.state, path, value);
                     this.onStateChange();
@@ -741,15 +708,15 @@ define([
             }
         },
         onStateChange: {
-            value: function() {}
+            value: function () {}
         },
         hasState: {
-            value: function(path) {
+            value: function (path) {
                 return Utils.hasProp(this.state, path);
             }
         },
         isState: {
-            value: function(path) {
+            value: function (path) {
                 if (Utils.hasProp(this.state, path)) {
                     if (Utils.getProp(this.state, path)) {
                         return true;
@@ -759,18 +726,18 @@ define([
             }
         },
         getState: {
-            value: function(path, defaultValue) {
+            value: function (path, defaultValue) {
                 return Utils.getProp(this.state, path, defaultValue);
             }
         },
         deleteState: {
-            value: function() {
+            value: function () {
                 this.state = {};
                 this.status = 'dirty';
             }
         },
         doState: {
-            value: function(path, fun, defaultValue) {
+            value: function (path, fun, defaultValue) {
                 if (Utils.hasProp(this.state, path)) {
                     return fun(Utils.getProp(this.state, path));
                 } else {
@@ -779,7 +746,7 @@ define([
             }
         },
         setError: {
-            value: function(errorValue) {
+            value: function (errorValue) {
                 Logger.logError({
                     source: 'Dashboard/' + this.widgetName,
                     title: 'ERROR in ' + this.widgetName,
@@ -791,7 +758,7 @@ define([
             }
         },
         checkState: {
-            value: function(status) {
+            value: function (status) {
                 if (this.stateMeta.status === status) {
                     return true;
                 } else {
@@ -800,9 +767,9 @@ define([
             }
         },
         setInitialState: {
-            value: function(options) {
+            value: function (options) {
                 // The base method just resolves immediately (well, on the next turn.) 
-                return new Promise(function(resolve, reject, notify) {
+                return new Promise(function (resolve, reject, notify) {
                     resolve();
                 });
             }
@@ -815,33 +782,33 @@ define([
          of the visual state.
          */
         onLoggedIn: {
-            value: function(auth) {
+            value: function (auth) {
                 this.setupAuth();
                 this.setup();
                 this.setInitialState({
                         force: true
                     })
-                    .then(function() {
+                    .then(function () {
                         this.status = 'dirty';
                         // this.refresh();
                     }.bind(this))
-                    .catch(function(err) {
+                    .catch(function (err) {
                         this.setError(err);
                     }.bind(this))
                     .done();
             }
         },
         onLoggedOut: {
-            value: function() {
+            value: function () {
                 this.setupAuth();
                 this.setup();
                 this.setInitialState({
                         force: true
                     })
-                    .then(function() {
+                    .then(function () {
                         this.status = 'dirty';
                     }.bind(this))
-                    .catch(function(err) {
+                    .catch(function (err) {
                         this.setError(err);
                     }.bind(this))
                     .done();
@@ -851,7 +818,7 @@ define([
 
         // TEMPLATES
         getTemplate: {
-            value: function(name) {
+            value: function (name) {
                 if (this.templates.cache[name] === undefined) {
                     this.templates.cache[name] = this.templates.env.getTemplate(name + '.html');
                 }
@@ -859,7 +826,7 @@ define([
             }
         },
         createTemplateContext: {
-            value: function(additionalContext) {
+            value: function (additionalContext) {
                 /*
                  var context = this.merge({}, this.context);
                  return this.merge(context, {
@@ -896,7 +863,7 @@ define([
             }
         },
         renderTemplate: {
-            value: function(name, context) {
+            value: function (name, context) {
                 var template = this.getTemplate(name);
                 if (!template) {
                     throw 'Template ' + name + ' not found';
@@ -907,17 +874,17 @@ define([
         },
         // Generates a unique id for usage on synthesized dom elements.
         genId: {
-            value: function() {
+            value: function () {
                 return 'gen_' + this.widgetName + '_' + this._generatedId++;
             }
         },
         renderError: {
-            value: function() {
+            value: function () {
                 this.renderErrorView(this.error);
             }
         },
         renderErrorView: {
-            value: function(errorObj) {
+            value: function (errorObj) {
                 // Very simple error view.
                 if (errorObj) {
                     if (typeof errorObj === 'string') {
@@ -961,7 +928,7 @@ define([
         // An example universal renderer, which inspects the state of the widget and
         // displays the appropriate content.
         render: {
-            value: function() {
+            value: function () {
                 try {
                     if (this.runtime.getService('session').isLoggedIn()) {
                         this.setTitle(this.widgetTitle);
@@ -984,7 +951,7 @@ define([
         // This can provide an initial layout, such as a panel, and provide container nodes,
         // such as title and content.
         renderLayout: {
-            value: function() {
+            value: function () {
                 this.container.html(this.getTemplate('layout').render(this.createTemplateContext()));
                 this.places = {
                     title: this.container.find('[data-placeholder="title"]'),
@@ -994,7 +961,7 @@ define([
             }
         },
         setupUI: {
-            value: function() {
+            value: function () {
                 return;
             }
         },
@@ -1003,27 +970,27 @@ define([
         // to fetch data.
         // NB depends on assets.
         renderWaitingView: {
-            value: function() {
+            value: function () {
                 this.places.content.html(html.loading());
             }
         },
         setTitle: {
-            value: function(title) {
+            value: function (title) {
                 this.places.title.html(this.widgetTitle);
             }
         },
         clearButtons: {
-            value: function(title) {
+            value: function (title) {
 
             }
         },
         addButton: {
-            value: function(cfg) {
+            value: function (cfg) {
 
             }
         },
         loadCSSResource: {
-            value: function(url) {
+            value: function (url) {
                 if (!this.haveCss) {
                     return;
                 }
@@ -1043,31 +1010,31 @@ define([
             }
         },
         loadCSS: {
-            value: function() {
+            value: function () {
                 this.loadCSSResource(Plugin.plugin.path + '/' + this.widgetName + '/style.css');
             }
         },
         renderMessages: {
-            value: function() {
+            value: function () {
                 if (this.places.alert) {
                     this.places.alert.empty();
                     for (var i = 0; i < this.messages.length; i++) {
                         var message = this.messages[i];
                         var alertClass = 'default';
                         switch (message.type) {
-                            case 'success':
-                                alertClass = 'success';
-                                break;
-                            case 'info':
-                                alertClass = 'info';
-                                break;
-                            case 'warning':
-                                alertClass = 'warning';
-                                break;
-                            case 'danger':
-                            case 'error':
-                                alertClass = 'danger';
-                                break;
+                        case 'success':
+                            alertClass = 'success';
+                            break;
+                        case 'info':
+                            alertClass = 'info';
+                            break;
+                        case 'warning':
+                            alertClass = 'warning';
+                            break;
+                        case 'danger':
+                        case 'error':
+                            alertClass = 'danger';
+                            break;
                         }
                         this.places.alert.append(
                             '<div class="alert alert-dismissible alert-' + alertClass + '" role="alert">' +
@@ -1078,13 +1045,13 @@ define([
             }
         },
         clearMessages: {
-            value: function() {
+            value: function () {
                 this.messages = [];
                 this.renderMessages();
             }
         },
         addSuccessMessage: {
-            value: function(title, message) {
+            value: function (title, message) {
                 if (message === undefined) {
                     message = title;
                     title = '';
@@ -1098,7 +1065,7 @@ define([
             }
         },
         addWarningMessage: {
-            value: function(title, message) {
+            value: function (title, message) {
                 if (message === undefined) {
                     message = title;
                     title = '';
@@ -1112,7 +1079,7 @@ define([
             }
         },
         addErrorMessage: {
-            value: function(title, message) {
+            value: function (title, message) {
                 if (message === undefined) {
                     message = title;
                     title = '';
@@ -1126,27 +1093,27 @@ define([
             }
         },
         logNotice: {
-            value: function(source, message) {
+            value: function (source, message) {
                 console.log('NOTICE: [' + source + '] ' + message);
             }
         },
         logDeprecation: {
-            value: function(source, message) {
+            value: function (source, message) {
                 console.log('DEPRECATION: [' + source + '] ' + message);
             }
         },
         logWarning: {
-            value: function(source, message) {
+            value: function (source, message) {
                 console.log('WARNING: [' + source + '] ' + message);
             }
         },
         logError: {
-            value: function(source, message) {
+            value: function (source, message) {
                 console.log('ERROR: [' + source + '] ' + message);
             }
         },
         createListMaps: {
-            value: function() {
+            value: function () {
                 this.listMaps = {};
                 for (var listId in this.lists) {
                     var list = this.lists[listId];
