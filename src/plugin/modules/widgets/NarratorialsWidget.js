@@ -144,9 +144,7 @@ define([
         setInitialState: {
             value: function(options) {
                 return this.getNarratives({
-                        //showDeleted: 0,
-                        //owners: [this.runtime.getService('session').getUsername()]
-                        meta : { narratorial : 1 }
+                      type : 'narratorial'
                     })
                     .then(function(narratives) {
                         this.setState('narratives', narratives);
