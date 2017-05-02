@@ -43,11 +43,6 @@ install:
             module: ./widgets/SharedNarrativesWidget
             id: dashboardSharedNarratives
             type: object
-        -
-            module: ./widgets/ProfileWidget
-            id: dashboardProfile
-            type: object
-
     routes:
         -
             path: ['dashboard']
