@@ -184,8 +184,7 @@ define([
         setInitialState: {
             value: function(options) {
                 return this.getNarratives({
-                        showDeleted: 0,
-                        excludeGlobal: 0
+                      type : 'public'
                     })
                     .then(function(narratives) {
                         narratives = narratives.filter(function(x) {

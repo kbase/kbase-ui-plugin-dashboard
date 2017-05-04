@@ -8,7 +8,6 @@ define([
     var widget = Object.create(DashboardWidget, {
         init: {
             value: function(cfg) {
-            console.log("INITS NARRATORIALS WIDGET");
                 cfg.name = 'NarratorialsWidget';
                 cfg.title = 'Tutorial Narratives';
                 this.DashboardWidget_init(cfg);
@@ -144,9 +143,7 @@ define([
         setInitialState: {
             value: function(options) {
                 return this.getNarratives({
-                        //showDeleted: 0,
-                        //owners: [this.runtime.getService('session').getUsername()]
-                        meta : { narratorial : 1 }
+                      type : 'narratorial'
                     })
                     .then(function(narratives) {
                         this.setState('narratives', narratives);

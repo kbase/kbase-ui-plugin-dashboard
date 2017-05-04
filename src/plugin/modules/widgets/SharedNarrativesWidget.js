@@ -159,7 +159,7 @@ define([
             value: function(options) {
 
                 return this.getNarratives({
-                        showDeleted: 0
+                      type : 'shared'
                     })
                     .then(function(narratives) {
                         var username = this.runtime.getService('session').getUsername();
