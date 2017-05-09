@@ -767,9 +767,9 @@ define([
             }
         },
         setInitialState: {
-            value: function(options) {
+            value: function (options) {
                 // The base method just resolves immediately (well, on the next turn.)
-                return new Promise(function(resolve, reject, notify) {
+                return new Promise(function (resolve, reject, notify) {
                     resolve();
                 });
             }
@@ -1094,22 +1094,22 @@ define([
         },
         logNotice: {
             value: function (source, message) {
-                console.log('NOTICE: [' + source + '] ' + message);
+                console.warn('NOTICE: [' + source + '] ' + message);
             }
         },
         logDeprecation: {
             value: function (source, message) {
-                console.log('DEPRECATION: [' + source + '] ' + message);
+                console.warn('DEPRECATION: [' + source + '] ' + message);
             }
         },
         logWarning: {
             value: function (source, message) {
-                console.log('WARNING: [' + source + '] ' + message);
+                console.warn('WARNING: [' + source + '] ' + message);
             }
         },
         logError: {
             value: function (source, message) {
-                console.log('ERROR: [' + source + '] ' + message);
+                console.error('ERROR: [' + source + '] ' + message);
             }
         },
         createListMaps: {
