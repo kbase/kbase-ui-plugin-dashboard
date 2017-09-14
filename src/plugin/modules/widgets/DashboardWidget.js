@@ -1,1234 +1,1229 @@
-/*global define*/
-/*jslint white:true,browser:true */
 define([
     'nunjucks',
     'jquery',
     'bluebird',
-    'kb/common/html',
-    'kb/common/utils',
-    'kb/service/serviceApi',
-    'kb/service/client/narrativeMethodStore',
-    'kb/common/logger',
-    'kb/common/gravatar',
+    'kb_common/html',
+    'kb_common/utils',
+    'kb_service/serviceApi',
+    'kb_service/client/narrativeMethodStore',
+    'kb_common/logger',
+    'kb_common/gravatar',
     'kb_plugin_dashboard'
-],
-    function (nunjucks, $, Promise, html, Utils, ServiceApi, NarrativeMethodStore, Logger, gravatar, Plugin) {
-        "use strict";
-        var DashboardWidget = Object.create({}, {
-            // The init function interfaces this object with the caller, and sets up any 
-            // constants and constant state.
-            DashboardWidget_init: {
-                value: function (cfg) {
-                    this._generatedId = 0;
+], function (
+    nunjucks,
+    $,
+    Promise,
+    html,
+    Utils,
+    ServiceApi,
+    NarrativeMethodStore,
+    Logger,
+    gravatar,
+    Plugin) {
+    'use strict';
+    var DashboardWidget = Object.create({}, {
+        // The init function interfaces this object with the caller, and sets up any
+        // constants and constant state.
+        DashboardWidget_init: {
+            value: function (cfg) {
+                this._generatedId = 0;
 
-                    // First we get the global config.
+                // First we get the global config.
 
-                    // The global config is derived from the module definition, which gets it from the 
-                    // functional site main config file directly. The setup property of the config defines
-                    // the current set of settings (production, development, etc.)
-                    // this.globalConfig = config[config.setup];
+                // The global config is derived from the module definition, which gets it from the
+                // functional site main config file directly. The setup property of the config defines
+                // the current set of settings (production, development, etc.)
+                // this.globalConfig = config[config.setup];
 
-                    // TODO: implement local config and config merging.
-                    this.localConfig = {};
-                    this.initConfig = cfg || {};
-                    this.setupConfig();
+                // TODO: implement local config and config merging.
+                this.localConfig = {};
+                this.initConfig = cfg || {};
+                this.setupConfig();
 
-                    // PARAMS          
-                    // The params object is used to hold any parameterized input.
-                    // Note that params may change. E.g. the user may select another 
-                    // member profile to view.
-                    this.params = {};
+                // PARAMS
+                // The params object is used to hold any parameterized input.
+                // Note that params may change. E.g. the user may select another
+                // member profile to view.
+                this.params = {};
 
-                    this.runtime = cfg.runtime;
-                    if (!this.runtime) {
-                        throw {
-                            type: 'ArgumentError',
-                            reason: 'RuntimeMissing',
-                            message: 'The runtime is required for a dashboard widget.'
-                        };
-                    }
-
-                    this.container = cfg.container;
-
-                    // Also the userId is required -- this is the user for whom the social widget is concerning.
-                    // by convention, if the userId is empty, we use the current logged in user.
-                    // This allows creating links to social widgets in some contexts in which the username can't be
-                    // placed onto the url.
-                    if (Utils.isBlank(cfg.userId)) {
-                        if (this.runtime.getService('session').isLoggedIn()) {
-                            this.params.userId = this.runtime.getService('session').getUsername();
-                        }
-                    } else {
-                        this.params.userId = cfg.userId;
-                    }
-
-                    // AUTH
-                    // Auth information is derived from the auth widget.
-                    // Auth state can change at any time -- the syncAuth method knows how to 
-                    // rebuild the widget after auth state change.
-                    this.setupAuth();
-
-
-                    // Set up widget based on the config, params, and auth.
-                    this.setupCoreApp();
-
-                    this.setup();
-
-
-                    // MESSAGES
-                    // The widget supports arbitrary messages provided by the widget code to the
-                    // interface. A simple list.
-                    this.messages = [];
-
-                    // ERROR
-                    this.error = null;
-
-                    // The state object is used to hold any data generated by this 
-                    // widget.
-                    // It is merged onto the context object prior to rendering.
-                    // state is either: none, initialized, changed, 
-                    this.state = {};
-                    this.stateMeta = {
-                        status: 'none',
-                        timestamp: new Date()
+                this.runtime = cfg.runtime;
+                if (!this.runtime) {
+                    throw {
+                        type: 'ArgumentError',
+                        reason: 'RuntimeMissing',
+                        message: 'The runtime is required for a dashboard widget.'
                     };
+                }
 
-                    // Creates maps out of lists.
-                    this.createListMaps();
+                this.container = cfg.container;
 
-                    // Set up the templating system.
-                    // NB the templating requires a dedicated widget resources directory in 
-                    //   /src/widgets/WIDGETNAME/templates
-                    this.templates = {};
-                    var loaders = [
-                        new nunjucks.WebLoader(Plugin.plugin.fullPath + '/' + this.widgetName + '/templates', true),
-                        new nunjucks.WebLoader(Plugin.plugin.fullPath + '/DashboardWidget/templates', true)
-                    ];
-                    this.templates.env = new nunjucks.Environment(loaders, {
-                        autoescape: false
-                    });
-                    this.templates.env.addFilter('roleLabel', function (role) {
-                        if (this.listMaps['userRoles'][role]) {
-                            return this.listMaps['userRoles'][role].label;
+                // Also the userId is required -- this is the user for whom the social widget is concerning.
+                // by convention, if the userId is empty, we use the current logged in user.
+                // This allows creating links to social widgets in some contexts in which the username can't be
+                // placed onto the url.
+                if (Utils.isBlank(cfg.userId)) {
+                    if (this.runtime.getService('session').isLoggedIn()) {
+                        this.params.userId = this.runtime.getService('session').getUsername();
+                    }
+                } else {
+                    this.params.userId = cfg.userId;
+                }
+
+                // AUTH
+                // Auth information is derived from the auth widget.
+                // Auth state can change at any time -- the syncAuth method knows how to
+                // rebuild the widget after auth state change.
+                this.setupAuth();
+
+
+                // Set up widget based on the config, params, and auth.
+                this.setupCoreApp();
+
+                this.setup();
+
+
+                // MESSAGES
+                // The widget supports arbitrary messages provided by the widget code to the
+                // interface. A simple list.
+                this.messages = [];
+
+                // ERROR
+                this.error = null;
+
+                // The state object is used to hold any data generated by this
+                // widget.
+                // It is merged onto the context object prior to rendering.
+                // state is either: none, initialized, changed,
+                this.state = {};
+                this.stateMeta = {
+                    status: 'none',
+                    timestamp: new Date()
+                };
+
+                // Creates maps out of lists.
+                this.createListMaps();
+
+                // Set up the templating system.
+                // NB the templating requires a dedicated widget resources directory in
+                //   /src/widgets/WIDGETNAME/templates
+                this.templates = {};
+                var loaders = [
+                    new nunjucks.WebLoader(Plugin.plugin.fullPath + '/' + this.widgetName + '/templates', true),
+                    new nunjucks.WebLoader(Plugin.plugin.fullPath + '/DashboardWidget/templates', true)
+                ];
+                this.templates.env = new nunjucks.Environment(loaders, {
+                    autoescape: false
+                });
+                this.templates.env.addFilter('roleLabel', function (role) {
+                    if (this.listMaps['userRoles'][role]) {
+                        return this.listMaps['userRoles'][role].label;
+                    }
+                    return role;
+                }.bind(this));
+                this.templates.env.addFilter('userClassLabel', function (userClass) {
+                    if (this.listMaps['userClasses'][userClass]) {
+                        return this.listMaps['userClasses'][userClass].label;
+                    }
+                    return userClass;
+                }.bind(this));
+                this.templates.env.addFilter('titleLabel', function (title) {
+                    if (this.listMaps['userTitles'][title]) {
+                        return this.listMaps['userTitles'][title].label;
+                    }
+                    return title;
+                }.bind(this));
+                this.templates.env.addFilter('permissionLabel', function (permissionFlag) {
+                    if (this.listMaps['permissionFlags'][permissionFlag]) {
+                        return this.listMaps['permissionFlags'][permissionFlag].label;
+                    }
+                    return permissionFlag;
+                }.bind(this));
+                this.templates.env.addFilter('length2', function (x) {
+                    if (x) {
+                        if (x instanceof Array) {
+                            return x.length;
                         }
-                        return role;
-                    }.bind(this));
-                    this.templates.env.addFilter('userClassLabel', function (userClass) {
-                        if (this.listMaps['userClasses'][userClass]) {
-                            return this.listMaps['userClasses'][userClass].label;
+                        if (x instanceof Object) {
+                            return Object.keys(x).length;
                         }
-                        return userClass;
-                    }.bind(this));
-                    this.templates.env.addFilter('titleLabel', function (title) {
-                        if (this.listMaps['userTitles'][title]) {
-                            return this.listMaps['userTitles'][title].label;
+                    }
+                }.bind(this));
+                // create a gravatar-url out of an email address and a
+                // default option.
+                this.templates.env.addFilter('gravatar', function (email, size, rating, gdefault) {
+                    // TODO: http/https.
+                    return gravatar.make().makeGravatarUrl(email, size, rating, gdefault);
+                }.bind(this));
+                this.templates.env.addFilter('kbmarkup', function (s) {
+                    if (s) {
+                        return s.replace(/\n/g, '<br>');
+                    }
+                    return '';
+                });
+                this.templates.env.addFilter('unixNiceTime', function (dateString) {
+                    if (dateString) {
+                        var seconds = parseInt(dateString, 10);
+                        //return '' + seconds;
+                        if (seconds && !isNaN(seconds)) {
+                            // return (new Date(seconds*1000)).toLocaleString();
+                            return Utils.niceElapsedTime(seconds * 1000);
                         }
-                        return title;
-                    }.bind(this));
-                    this.templates.env.addFilter('permissionLabel', function (permissionFlag) {
-                        if (this.listMaps['permissionFlags'][permissionFlag]) {
-                            return this.listMaps['permissionFlags'][permissionFlag].label;
-                        }
-                        return permissionFlag;
-                    }.bind(this));
-                    this.templates.env.addFilter('length2', function (x) {
-                        if (x) {
-                            if (x instanceof Array) {
-                                return x.length;
-                            }
-                            if (x instanceof Object) {
-                                return Object.keys(x).length;
-                            }
-                        }
-                    }.bind(this));
-                    // create a gravatar-url out of an email address and a 
-                    // default option.
-                    this.templates.env.addFilter('gravatar', function (email, size, rating, gdefault) {
-                        // TODO: http/https.
-                        return gravatar.make().makeGravatarUrl(email, size, rating, gdefault);
-                    }.bind(this));
-                    this.templates.env.addFilter('kbmarkup', function (s) {
-                        if (s) {
-                            return s.replace(/\n/g, '<br>');
-                        }
+                    }
+                });
+                this.templates.env.addFilter('dateFormat', function (dateString) {
+                    return Utils.niceElapsedTime(dateString);
+                }.bind(this));
+                this.templates.env.addFilter('jsDatestring', function (dateString) {
+                    return Utils.iso8601ToDate(dateString).toISOString();
+                }.bind(this));
+                this.templates.env.addFilter('niceRuntime', function (ms) {
+                    if (!ms) {
                         return '';
-                    });
-                    this.templates.env.addFilter('unixNiceTime', function (dateString) {
-                        if (dateString) {
-                            var seconds = parseInt(dateString, 10);
-                            //return '' + seconds;
-                            if (seconds && !isNaN(seconds)) {
-                                // return (new Date(seconds*1000)).toLocaleString();
-                                return Utils.niceElapsedTime(seconds * 1000);
+                    }
+                    var seconds = ms / 1000;
+                    var minutes = Math.floor(seconds / 60);
+                    seconds = seconds % 60;
+                    var hours = Math.floor(minutes / 60);
+                    minutes = minutes % 60;
+                    var days = Math.floor(hours / 24);
+                    hours = hours % 24;
+                    var showSeconds = false;
+                    if (days) {
+                        return (days ? days + 'd' : '') + (hours ? ' ' + hours + 'h' : '');
+                    }
+                    if (hours) {
+                        return (hours ? ' ' + hours + 'h' : '') + (minutes ? ' ' + minutes + 'm' : '');
+                    }
+                    return (minutes ? ' ' + minutes + 'm' : '') + (seconds && showSeconds ? ' ' + seconds + 's' : '');
+
+                    // return (days?days+'d':'') + (hours?' '+hours+'h':'') + (minutes?' '+minutes+'m':'') + (seconds && showSeconds?' '+seconds+'s':'')
+                }.bind(this));
+                this.templates.env.addFilter('defaultDash', function (x) {
+                    if (x === null || x === undefined || (typeof x === 'string' && x.length === 0)) {
+                        return '-';
+                    }
+                    return x;
+                });
+                this.templates.env.addFilter('isBlank', function (x) {
+                    if (x === null || x === undefined || (typeof x === 'string' && x.length === 0)) {
+                        return true;
+                    }
+                    return false;
+                });
+                this.templates.env.addFilter('isEmpty', function (x) {
+                    if (x === null || x === undefined || (typeof x === 'string' && x.length === 0)) {
+                        return true;
+                    }
+                    if (x.push && x.pop && x.length === 0) {
+                        return true;
+                    }
+                    if (Object.keys(x).length === 0) {
+                        return true;
+                    }
+                    return false;
+                });
+                this.templates.env.addFilter('sort', function (x, prop) {
+                    if (typeof x === 'object' && x.pop && x.push) {
+                        return x.sort(function (a, b) {
+                            if (prop) {
+                                a = a[prop];
+                                b = b[prop];
                             }
-                        }
-                    });
-                    this.templates.env.addFilter('dateFormat', function (dateString) {
-                        return Utils.niceElapsedTime(dateString);
-                    }.bind(this));
-                    this.templates.env.addFilter('jsDatestring', function (dateString) {
-                        return Utils.iso8601ToDate(dateString).toISOString();
-                    }.bind(this));
-                    this.templates.env.addFilter('niceRuntime', function (ms) {
-                        if (!ms) {
-                            return '';
-                        }
-                        var seconds = ms / 1000;
-                        var minutes = Math.floor(seconds / 60);
-                        seconds = seconds % 60;
-                        var hours = Math.floor(minutes / 60);
-                        minutes = minutes % 60;
-                        var days = Math.floor(hours / 24);
-                        hours = hours % 24;
-                        var showSeconds = false;
-                        if (days) {
-                            return (days ? days + 'd' : '') + (hours ? ' ' + hours + 'h' : '');
-                        }
-                        if (hours) {
-                            return (hours ? ' ' + hours + 'h' : '') + (minutes ? ' ' + minutes + 'm' : '');
-                        }
-                        return (minutes ? ' ' + minutes + 'm' : '') + (seconds && showSeconds ? ' ' + seconds + 's' : '');
-
-                        // return (days?days+'d':'') + (hours?' '+hours+'h':'') + (minutes?' '+minutes+'m':'') + (seconds && showSeconds?' '+seconds+'s':'')
-                    }.bind(this));
-                    this.templates.env.addFilter('defaultDash', function (x) {
-                        if (x === null || x === undefined || (typeof x === 'string' && x.length === 0)) {
-                            return '-';
-                        }
-                        return x;
-                    });
-                    this.templates.env.addFilter('isBlank', function (x) {
-                        if (x === null || x === undefined || (typeof x === 'string' && x.length === 0)) {
-                            return true;
-                        }
-                        return false;
-                    });
-                    this.templates.env.addFilter('isEmpty', function (x) {
-                        if (x === null || x === undefined || (typeof x === 'string' && x.length === 0)) {
-                            return true;
-                        }
-                        if (x.push && x.pop && x.length === 0) {
-                            return true;
-                        }
-                        if (Object.keys(x).length === 0) {
-                            return true;
-                        }
-                        return false;
-                    });
-                    this.templates.env.addFilter('sort', function (x, prop) {
-                        if (typeof x === 'object' && x.pop && x.push) {
-                            return x.sort(function (a, b) {
-                                if (prop) {
-                                    a = a[prop];
-                                    b = b[prop];
-                                }
-                                if (a < b) {
-                                    return -1;
-                                }
-                                if (a > b) {
-                                    return 1;
-                                }
-                                return 0;
-                            });
-                        }
-                        return x;
-                    });
-                    this.templates.env.addFilter('plural', function (x, suffix) {
-                        if (typeof x === 'number') {
-                            if (x !== 1) {
-                                return suffix || 's';
+                            if (a < b) {
+                                return -1;
                             }
+                            if (a > b) {
+                                return 1;
+                            }
+                            return 0;
+                        });
+                    }
+                    return x;
+                });
+                this.templates.env.addFilter('plural', function (x, suffix) {
+                    if (typeof x === 'number') {
+                        if (x !== 1) {
+                            return suffix || 's';
                         }
-                        return '';
-                    });
+                    }
+                    return '';
+                });
 
-                    this.templates.env.addGlobal('randomNumber', function (from, to) {
-                        return Math.floor(from + Math.random() * (to - from));
-                    });
+                this.templates.env.addGlobal('randomNumber', function (from, to) {
+                    return Math.floor(from + Math.random() * (to - from));
+                });
 
-                    this.templates.env.addGlobal('getConfig', function (prop) {
+                this.templates.env.addGlobal('getConfig', function (prop) {
+                    return this.runtime.getConfig(prop);
+                }.bind(this));
+
+                this.templates.env.addFilter('methodPath', function (method) {
+                    var path = [];
+                    if (method.namespace) {
+                        path.push(method.namespace);
+                    } else {
+                        path.push('l.m');
+                    }
+                    if (method.id) {
+                        path.push(method.id);
+                    }
+                    //                        if (method.tag) {
+                    //                            path.push(method.tag);
+                    //                        } else if (method.commitHash) {
+                    //                            path.push(method.commitHash);
+                    //                        }
+                    if (method.tag) {
+                        path.push(method.tag);
+                    }
+                    return path.join('/');
+                });
+
+                // This is the cache of templates.
+                this.templates.cache = {};
+
+                // The context object is what is given to templates.
+                this.context = {};
+                this.context.env = {
+                    pluginPath: Plugin.plugin.fullPath,
+                    widgetTitle: this.widgetTitle,
+                    widgetName: this.widgetName,
+                    docsite: this.runtime.getConfig('docsite'),
+                    getConfig: function (prop) {
                         return this.runtime.getConfig(prop);
+                    }.bind(this)
+                };
+                // NB this means that when clearing state or params, the object
+                // should not be blown away.
+                this.context.state = this.state;
+                this.context.params = this.params;
+
+                // HEARTBEAT
+
+                this.refreshEnabled = false;
+
+                // refreshBeat is a one minute (or whatever) approximate timer for
+                // refreshing more expensive data.
+                // this.refreshBeat = 60000;
+                //
+                // If we don't define these, then refreshing is disabled.
+                this.refreshInterval = 60000;
+                this.refreshLastTime = null;
+
+
+                // STATUS
+
+                // Now use a status flag ...
+                /*
+                 new - newly created
+                 ready - ready for rendering and looping into the heartbeat
+                 dirty - state changed, need refresh
+                 clean - view reflects state, no need to re-render
+                 error - error state, don't fetch or refresh without user intervention (?)
+                 stopped - stop call has been made in preparation for destroying
+                 */
+                this.status = 'new';
+
+                return this;
+            }
+        },
+        setupConfig: {
+            value: function () {
+
+                this.configs = [{}, this.initConfig, this.localConfig];
+
+                // Check for required and apply defaults.
+                if (!this.hasConfig('container')) {
+                    throw 'A container is required by this Widget, but was not provided.';
+                }
+
+                if (!this.hasConfig('name')) {
+                    throw 'Widget name is required';
+                }
+
+                if (!this.hasConfig('title')) {
+                    throw 'Widget title is required';
+                }
+
+            }
+        },
+        setupCoreApp: {
+            value: function () {
+                // Should be run after configuration changes.
+                // May touch parts of the widget object, so care should be taken
+                // to syncronize or just plain rebuild.
+
+                this.container = this.getConfig('container');
+                if (typeof this.container === 'string') {
+                    this.container = $(this.container);
+                }
+
+                // OTHER CONFIG
+                // The widget requires a name to use for various purposes.
+                this.widgetName = this.getConfig('name');
+
+                this.widgetTitle = this.getConfig('title');
+                this.instanceId = this.genId();
+
+                if (!this.hasConfig('viewState')) {
+                    throw 'The View State was not provided in ' + this.widgetName;
+                }
+                this.viewState = this.getConfig('viewState');
+
+                // Make sure method hooks are available
+
+                return;
+            }
+        },
+        setupAuth: {
+            value: function () {
+
+            }
+        },
+        // Commonly used data access and munging methods
+
+        getTag: {
+            value: function () {
+                if (this.runtime.config('deploy.environment') === 'prod') {
+                    return 'release';
+                } else {
+                    return 'dev';
+                }
+            }
+        },
+
+
+        getApps: {
+            value: function () {
+                var methodStore = new NarrativeMethodStore(this.runtime.getConfig('services.narrative_method_store.url'), {
+                        token: this.runtime.service('session').getAuthToken()
+                    }),
+                    tag = this.getTag();
+                return Promise.all([
+                        methodStore.list_methods({ tag: tag })
+                    ])
+                    .spread(function (release) {
+                        var appMap = {};
+                        release.forEach(function (app) {
+                            appMap[app.id] = {
+                                info: app,
+                                tag: tag
+                            };
+                        });
+                        // this.setState('appsMap', appMap);
+                        return appMap;
                     }.bind(this));
-
-                    this.templates.env.addFilter('methodPath', function (method) {
-                        var path = [];
-                        if (method.namespace) {
-                            path.push(method.namespace);
-                        } else {
-                            path.push('l.m');
-                        }
-                        if (method.id) {
-                            path.push(method.id);
-                        }
-//                        if (method.tag) {
-//                            path.push(method.tag);
-//                        } else if (method.commitHash) {
-//                            path.push(method.commitHash);
-//                        }  
-                        if (method.tag) {
-                            path.push(method.tag);
-                        }
-                        return path.join('/');
-                    });
-                    
-                    // This is the cache of templates.
-                    this.templates.cache = {};
-
-                    // The context object is what is given to templates.
-                    this.context = {};
-                    this.context.env = {
-                        pluginPath: Plugin.plugin.fullPath,
-                        widgetTitle: this.widgetTitle,
-                        widgetName: this.widgetName,
-                        docsite: this.runtime.getConfig('docsite'),
-                        getConfig: function (prop) {
-                            return this.runtime.getConfig(prop);
-                        }.bind(this)
-                    };
-                    // NB this means that when clearing state or params, the object
-                    // should not be blown away.
-                    this.context.state = this.state;
-                    this.context.params = this.params;
-
-                    // HEARTBEAT
-
-                    this.refreshEnabled = false;
-
-                    // refreshBeat is a one minute (or whatever) approximate timer for 
-                    // refreshing more expensive data.
-                    // this.refreshBeat = 60000;
-                    //
-                    // If we don't define these, then refreshing is disabled.
-                    this.refreshInterval = 60000;
-                    this.refreshLastTime = null;
-
-
-                    // STATUS
-
-                    // Now use a status flag ...
-                    /*
-                     new - newly created
-                     ready - ready for rendering and looping into the heartbeat 
-                     dirty - state changed, need refresh
-                     clean - view reflects state, no need to re-render
-                     error - error state, don't fetch or refresh without user intervention (?)
-                     stopped - stop call has been made in preparation for destroying
-                     */
-                    this.status = 'new';
-
-                    return this;
-                }
-            },
-            setupConfig: {
-                value: function () {
-
-                    this.configs = [{}, this.initConfig, this.localConfig];
-
-                    // Check for required and apply defaults.
-                    if (!this.hasConfig('container')) {
-                        throw 'A container is required by this Widget, but was not provided.';
-                    }
-
-                    if (!this.hasConfig('name')) {
-                        throw 'Widget name is required';
-                    }
-
-                    if (!this.hasConfig('title')) {
-                        throw 'Widget title is required';
-                    }
-
-                }
-            },
-            setupCoreApp: {
-                value: function () {
-                    // Should be run after configuration changes.
-                    // May touch parts of the widget object, so care should be taken
-                    // to syncronize or just plain rebuild.
-
-                    this.container = this.getConfig('container');
-                    if (typeof this.container === 'string') {
-                        this.container = $(this.container);
-                    }
-
-                    // OTHER CONFIG
-                    // The widget requires a name to use for various purposes.
-                    this.widgetName = this.getConfig('name');
-
-                    this.widgetTitle = this.getConfig('title');
-                    this.instanceId = this.genId();
-
-                    if (!this.hasConfig('viewState')) {
-                        throw 'The View State was not provided in ' + this.widgetName;
-                    }
-                    this.viewState = this.getConfig('viewState');
-
-                    // Make sure method hooks are available
-
-                    return;
-                }
-            },
-            setupAuth: {
-                value: function () {
-
-                }
-            },
-            // Commonly used data access and munging methods
-
-
-            getApps: {
-                value: function () {
-                    var methodStore = new NarrativeMethodStore(this.runtime.getConfig('services.narrative_method_store.url'), {
-                        token: this.runtime.service('session').getAuthToken()
-                    }),
-                        tag;
-                    if (this.runtime.config('deploy.environment') === 'prod') {
-                        tag = 'release';
-                    } else {
-                        tag = 'dev';
-                    }
-                    return Promise.all([
-                        methodStore.list_apps({tag: tag})
-                    ])
-                        .spread(function (release) {
-                            var appMap = {};
-                            release.forEach(function (method) {
-                                appMap[method.id] = {
-                                    info: method,
-                                    tag: tag
-                                };
-                            });
-                            // this.setState('appsMap', appMap);
-                            return appMap;
-                        }.bind(this));
-                }
-            },
-            getMethods: {
-                value: function () {
-                    var methodStore = new NarrativeMethodStore(this.runtime.getConfig('services.narrative_method_store.url'), {
-                        token: this.runtime.service('session').getAuthToken()
-                    }),
-                        tag;
-                    if (this.runtime.config('deploy.environment') === 'prod') {
-                        tag = 'release';
-                    } else {
-                        tag = 'dev';
-                    }
-                    return Promise.all([
-                        methodStore.list_methods({tag: tag})
-                    ])
-                        .spread(function (methods) {
-                            var methodsMap = {};
-                            methods.forEach(function (method) {
-                                if (method.namesapce) {
-                                    methodsMap[method.namespace + '/' + method.id] = {
-                                        info: method,
-                                        tag: tag
-                                    };
-                                } else {
-                                    methodsMap[method.id] = {
-                                        info: method,
-                                        tag: tag
-                                    };
-                                }
-                            });
-                            return methodsMap;
-                        }.bind(this));
-                }
-            },
-            getNarratives: {
-                value: function (params, filter) {
-                    return Promise.all([
+            }
+        },
+        getNarratives: {
+            value: function (params, filter) {
+                return Promise.all([
                         this.kbservice.getNarratives({
                             params: params
                         }),
-                        this.getApps(),
-                        this.getMethods()
+                        this.getApps()
+                        // this.getMethods()
                     ])
-                        .spread(function (narratives, appsMap, methodsMap) {
-                            narratives.forEach(function (narrative) {
-                                narrative.methods = narrative.methods.map(function (method) {
-                                    var methodInfo, methodId, legacy;
-                                    if (method.module) {
-                                        methodId = [method.module, method.id].join('/');
-                                        legacy = false;
-                                    } else {
-                                        methodId = method.id;
-                                        legacy = true;
+                    .spread(function (narratives, appsMap) {
+                        narratives.forEach(function (narrative) {
+                            narrative.methods = narrative.methods.map(function (method) {
+                                var methodInfo, methodId, legacy;
+                                if (method.module) {
+                                    methodId = [method.module, method.id].join('/');
+                                    legacy = false;
+                                } else {
+                                    methodId = method.id;
+                                    legacy = true;
+                                }
+                                // methodInfo = methodsMap[methodId];
+                                // if (methodInfo) {
+                                //     return {
+                                //         namespace: method.module,
+                                //         id: method.id,
+                                //         info: methodInfo.info,
+                                //         name: methodInfo.info.name,
+                                //         tag: legacy ? null : methodInfo.tag
+                                //     };
+                                // }
+                                return {
+                                    id: methodId,
+                                    name: method.id,
+                                    view: {
+                                        state: 'error',
+                                        title: 'Pre-SDK methods not supported'
                                     }
-                                    methodInfo = methodsMap[methodId];
-                                    if (methodInfo) {
-                                        return {
-                                            namespace: method.module,
-                                            id: method.id,
-                                            info: methodInfo.info,
-                                            name: methodInfo.info.name,
-                                            tag: legacy? null : methodInfo.tag
-                                        };
-                                    }
-                                    return {
-                                        id: methodId,
-                                        name: method.id,
-                                        view: {
-                                            state: 'error',
-                                            title: 'Method not found'
-                                        }
-                                    };
-                                });
+                                };
                             });
-                            narratives.forEach(function (narrative) {
-                                narrative.apps = narrative.apps.map(function (app) {
-                                    var appInfo = appsMap[app.id];
-                                    if (appInfo) {
-                                        return {
-                                            id: app.id,
-                                            name: appInfo.info.name,
-                                            tag: appInfo.tag
-                                        };
-                                    }
+                        });
+                        narratives.forEach(function (narrative) {
+                            narrative.apps = narrative.apps.map(function (app) {
+                                if (!app.module) {
                                     return {
                                         name: app.id,
                                         view: {
                                             state: 'error',
-                                            title: 'App not found'
+                                            title: 'Pre-SDK apps not supported'
                                         }
                                     };
-                                });
-                            });
-                            return this.kbservice.getPermissions(narratives);
-                        }.bind(this))
-                        .then(function (narratives) {
-                            return narratives.sort(function (a, b) {
-                                return b.object.saveDate.getTime() - a.object.saveDate.getTime();
-                            });
+                                }
+                                var appId = app.module + '/' + app.id;
+                                var appInfo = appsMap[appId];
+                                if (appInfo) {
+                                    return {
+                                        id: appId,
+                                        info: appInfo.info,
+                                        name: appInfo.info.name,
+                                        tag: this.getTag()
+                                    };
+                                }
+                                return {
+                                    id: appId,
+                                    name: appId,
+                                    info: {},
+                                    view: {
+                                        state: 'error',
+                                        title: 'App not found'
+                                    },
+                                    tag: this.getTag()
+                                };
+                            }.bind(this));
+                        }.bind(this));
+                        return this.kbservice.getPermissions(narratives);
+                    }.bind(this))
+                    .then(function (narratives) {
+                        return narratives.sort(function (a, b) {
+                            return b.object.saveDate.getTime() - a.object.saveDate.getTime();
                         });
-                }
-            },
-            getAppName: {
-                value: function (name) {
-                    return this.getState(['appsMap', name, 'name'], name);
-                }
-            },
-            getMethodName: {
-                value: function (name) {
-                    return this.getState(['methodsMap', name, 'name'], name);
-                }
-            },
-            // LIFECYCLE
+                    });
+            }
+        },
+        getAppName: {
+            value: function (name) {
+                return this.getState(['appsMap', name, 'name'], name);
+            }
+        },
+        getMethodName: {
+            value: function (name) {
+                return this.getState(['methodsMap', name, 'name'], name);
+            }
+        },
+        // LIFECYCLE
 
-            go: {
-                value: function () {
-                    // This creates the initial UI -- loads the css, inserts layout html.
-                    // For simple widgets this is all the setup needed.
-                    // For more complex one, parts of the UI may be swapped out.
-                    this.renderUI();
-                    this.renderWaitingView();
-                    this.setInitialState()
-                        .then(function () {
-                            this.status = 'dirty';
-                            this.setupUI();
-                        }.bind(this))
-                        .catch(function (err) {
-                            this.setError(err);
-                        }.bind(this))
-                        .finally(function () {
-                            this.startSubscriptions();
-                            if (this.afterStart) {
-                                this.afterStart();
-                            }
-                        }.bind(this));
-                    return this;
-                }
-            },
-            startSubscriptions: {
-                value: function () {
-                    // Set up listeners for any kbase events we are interested in:
-                    this.subscriptions = [];
-                    this.subscriptions.push(this.runtime.recv('session', 'login.success', function (data) {
-                        this.onLoggedIn(data.session);
-                    }.bind(this)));
-
-                    this.subscriptions.push(this.runtime.recv('session', 'logout.success', function () {
-                        this.onLoggedOut();
-                    }.bind(this)));
-
-                    this.subscriptions.push(this.runtime.recv('app', 'heartbeat', function (data) {
-                        this.handleHeartbeat(data);
-                    }.bind(this)));
-                }
-            },
-            stopSubscriptions: {
-                value: function () {
-                    if (this.subscriptions) {
-                        this.subscriptions.forEach(function (sub) {
-                            this.runtime.drop(sub);
-                        }.bind(this));
-                        this.subscriptions = [];
-                    }
-                }
-            },
-            stop: {
-                value: function () {
-                    this.stopSubscriptions();
-                    if (this.onStop) {
-                        this.onStop();
-                    }
-                }
-            },
-            handleHeartbeat: {
-                value: function (data) {
-                    if (this.refreshEnabled) {
-                        var now = (new Date()).getTime();
-                        if (!this.refreshLastTime) {
-                            this.refreshLastTime = now;
-                        }
-                        if (now - this.refreshLastTime >= this.refreshInterval) {
-                            if (this.onRefreshbeat) {
-                                this.refreshLastTime = now;
-                                this.onRefreshbeat(data);
-                            }
-                        }
-                    }
-                    if (this.onHeartbeat) {
-                        this.onHeartbeat(data);
-                    }
-                }
-            },
-            onHeartbeat: {
-                value: function (data) {
-                    switch (this.status) {
-                        case 'dirty':
-                            this.status = 'clean';
-                            this.refresh()
-                                .catch(function (err) {
-                                    this.setError(err);
-                                }.bind(this));
-                            break;
-                        case 'error':
-                            this.status = 'errorshown';
-                            this.renderError();
-                            break;
-                    }
-                }
-            },
-            onRefreshbeat: {
-                value: function () {
-                    this.setInitialState()
-                        .catch(function (err) {
-                            this.setError(err);
-                        }.bind(this));
-                    return this;
-                }
-            },
-            setup: {
-                value: function () {
-                    // does whatever the widget needs to do to set itself up
-                    // after config, params, and auth have been configured.
-                    this.kbservice = ServiceApi.make({runtime: this.runtime});
-
-                    return this;
-                }
-            },
-            renderUI: {
-                value: function () {
-                    // No longer necessary -- the plugin config for the widget can
-                    // specify whether a css should be loaded.
-                    // this.loadCSS();
-                    this.renderLayout();
-                    return this;
-                }
-            },
-            destroy: {
-                value: function () {
-                    // tear down any events, etc. that are not attached
-                    // to the local container.
-                }
-            },
-            // CONFIG
-            getConfig: {
-                value: function (key, defaultValue) {
-                    var i;
-                    for (i = 0; i < this.configs.length; i++) {
-                        if (Utils.getProp(this.configs[i], key) !== undefined) {
-                            return Utils.getProp(this.configs[i], key);
-                        }
-                    }
-                    return defaultValue;
-                }
-            },
-            setConfig: {
-                value: function (key, value) {
-                    // sets it on the first config, which is the override config.
-                    Utils.setProp(this.configs[0], key, value);
-                }
-            },
-            hasConfig: {
-                value: function (key) {
-                    for (var i = 0; i < this.configs.length; i++) {
-                        if (Utils.getProp(this.configs[i], key) !== undefined) {
-                            return true;
-                        }
-                    }
-                    return false;
-                }
-            },
-            // PARAMETERS
-            // Parameters are typically passed into the init() method, and represent external values that vary for each 
-            // new object. Typical use cases are url query variables.
-            setParam: {
-                value: function (path, value) {
-                    Utils.setProp(this.params, path, value);
-                    // this.refresh().done();
-                    if (this.onParamChange) {
-                        this.onParamChange();
-                    }
-                }
-            },
-            getParam: {
-                value: function (path, defaultValue) {
-                    return Utils.getProp(this.params, path, defaultValue);
-                }
-            },
-            onParamChange: {
-                value: function () {
-                    if (this.filterState) {
-                        this.filterState();
-                    }
-                }
-            },
-            refresh: {
-                value: function () {
-                    return new Promise(function (resolve, reject, notify) {
-                        this.render();
-                        resolve();
-                    }.bind(this));
-                }
-            },
-            // STATE CHANGES
-
-            setState: {
-                value: function (path, value, norefresh) {
-                    if (!Utils.isEqual(Utils.getProp(this.state, path), value)) {
-                        Utils.setProp(this.state, path, value);
-                        this.onStateChange();
+        go: {
+            value: function () {
+                // This creates the initial UI -- loads the css, inserts layout html.
+                // For simple widgets this is all the setup needed.
+                // For more complex one, parts of the UI may be swapped out.
+                this.renderUI();
+                this.renderWaitingView();
+                this.setInitialState()
+                    .then(function () {
                         this.status = 'dirty';
-                    }
-                }
-            },
-            onStateChange: {
-                value: function () {
-                }
-            },
-            hasState: {
-                value: function (path) {
-                    return Utils.hasProp(this.state, path);
-                }
-            },
-            isState: {
-                value: function (path) {
-                    if (Utils.hasProp(this.state, path)) {
-                        if (Utils.getProp(this.state, path)) {
-                            return true;
+                        this.setupUI();
+                    }.bind(this))
+                    .catch(function (err) {
+                        this.setError(err);
+                    }.bind(this))
+                    .finally(function () {
+                        this.startSubscriptions();
+                        if (this.afterStart) {
+                            this.afterStart();
                         }
-                    }
-                    return false;
-                }
-            },
-            getState: {
-                value: function (path, defaultValue) {
-                    return Utils.getProp(this.state, path, defaultValue);
-                }
-            },
-            deleteState: {
-                value: function () {
-                    this.state = {};
-                    this.status = 'dirty';
-                }
-            },
-            doState: {
-                value: function (path, fun, defaultValue) {
-                    if (Utils.hasProp(this.state, path)) {
-                        return fun(Utils.getProp(this.state, path));
-                    } else {
-                        return defaultValue;
-                    }
-                }
-            },
-            setError: {
-                value: function (errorValue) {
-                    Logger.logError({
-                        source: 'Dashboard/' + this.widgetName,
-                        title: 'ERROR in ' + this.widgetName,
-                        data: errorValue
-                    });
-                    this.status = 'error';
-                    this.error = errorValue;
+                    }.bind(this));
+                return this;
+            }
+        },
+        startSubscriptions: {
+            value: function () {
+                // Set up listeners for any kbase events we are interested in:
+                this.subscriptions = [];
+                this.subscriptions.push(this.runtime.recv('session', 'login.success', function (data) {
+                    this.onLoggedIn(data.session);
+                }.bind(this)));
 
-                }
-            },
-            checkState: {
-                value: function (status) {
-                    if (this.stateMeta.status === status) {
-                        return true;
-                    } else {
-                        return false;
-                    }
-                }
-            },
-            setInitialState: {
-                value: function (options) {
-                    // The base method just resolves immediately (well, on the next turn.) 
-                    return new Promise(function (resolve, reject, notify) {
-                        resolve();
-                    });
-                }
-            },
-            // EVENT HANDLERS
+                this.subscriptions.push(this.runtime.recv('session', 'logout.success', function () {
+                    this.onLoggedOut();
+                }.bind(this)));
 
-            /*
-             AUTH
-             Auth state changes force a complete refetching of all data, and refreshing
-             of the visual state.
-             */
-            onLoggedIn: {
-                value: function (auth) {
-                    this.setupAuth();
-                    this.setup();
-                    this.setInitialState({
-                        force: true
-                    })
-                        .then(function () {
-                            this.status = 'dirty';
-                            // this.refresh();
-                        }.bind(this))
-                        .catch(function (err) {
-                            this.setError(err);
-                        }.bind(this))
-                        .done();
-                }
-            },
-            onLoggedOut: {
-                value: function () {
-                    this.setupAuth();
-                    this.setup();
-                    this.setInitialState({
-                        force: true
-                    })
-                        .then(function () {
-                            this.status = 'dirty';
-                        }.bind(this))
-                        .catch(function (err) {
-                            this.setError(err);
-                        }.bind(this))
-                        .done();
-                }
-            },
-            // STATE CALCULATIONS
-
-            // TEMPLATES
-            getTemplate: {
-                value: function (name) {
-                    if (this.templates.cache[name] === undefined) {
-                        this.templates.cache[name] = this.templates.env.getTemplate(name + '.html');
-                    }
-                    return this.templates.cache[name];
-                }
-            },
-            createTemplateContext: {
-                value: function (additionalContext) {
-                    /*
-                     var context = this.merge({}, this.context);
-                     return this.merge(context, {
-                     state: this.state, 
-                     params: this.params
-                     })
-                     */
-
-                    // We need to ensure that the context reflects the current auth state.
-                    this.context.env.generatedId = this.genId();
-                    this.context.env.loggedIn = this.runtime.getService('session').isLoggedIn();
-                    if (this.runtime.service('session').isLoggedIn()) {
-                        this.context.env.loggedInUser = this.runtime.getService('session').getUsername();
-                        //this.context.env.loggedInUserRealName = Session.getUserRealName();
-                    } else {
-                        delete this.context.env.loggedInUser;
-                        //delete this.context.env.loggedInUserRealName;
-                    }
-
-                    this.context.env.instanceId = this.instanceId;
-
-                    if (additionalContext) {
-                        var temp = Utils.merge({}, this.context);
-                        var context = Utils.merge(temp, additionalContext);
-                    } else {
-                        var context = this.context;
-                    }
-
-                    if (this.onCreateTemplateContext) {
-                        return this.onCreateTemplateContext(context);
-                    } else {
-                        return context;
-                    }
-                }
-            },
-            renderTemplate: {
-                value: function (name, context) {
-                    var template = this.getTemplate(name);
-                    if (!template) {
-                        throw 'Template ' + name + ' not found';
-                    }
-                    var context = context ? context : this.createTemplateContext();
-                    return template.render(context);
-                }
-            },
-            // Generates a unique id for usage on synthesized dom elements.
-            genId: {
-                value: function () {
-                    return 'gen_' + this.widgetName + '_' + this._generatedId++;
-                }
-            },
-            renderError: {
-                value: function () {
-                    this.renderErrorView(this.error);
-                }
-            },
-            renderErrorView: {
-                value: function (errorObj) {
-                    // Very simple error view.
-                    if (errorObj) {
-                        if (typeof errorObj === 'string') {
-                            var error = {
-                                title: 'Error', message: errorObj
-                            };
-                        } else if (typeof errorObj === 'object') {
-                            if (errorObj instanceof Error) {
-                                var error = {
-                                    title: 'Error',
-                                    message: errorObj.message
-                                };
-                            } else if (errorObj.status && errorObj.error) {
-                                // this is a service error
-                                var error = {
-                                    title: 'Service Error ' + errorObj.status,
-                                    message: errorObj.error
-                                };
-                            } else {
-                                var error = {
-                                    title: 'Unknown Error',
-                                    message: '' + errorObj
-                                };
-                            }
-                        }
-                    } else {
-                        var error = {
-                            title: 'Unknown Error',
-                            message: ''
-                        };
-                    }
-                    var context = this.createTemplateContext({
-                        error: error
-                    });
-                    this.places.content.html(this.getTemplate('error').render(context));
-                }
-            },
-            // DOM UPDATE
-
-            // An example universal renderer, which inspects the state of the widget and
-            // displays the appropriate content.
-            render: {
-                value: function () {
-                    try {
-                        if (this.runtime.getService('session').isLoggedIn()) {
-                            this.setTitle(this.widgetTitle);
-                            this.places.content.html(this.renderTemplate('authorized'));
-                        } else {
-                            this.setTitle(this.widgetTitle);
-                            this.places.content.html(this.renderTemplate('unauthorized'));
-                        }
-                        if (this.afterRender) {
-                            this.afterRender();
-                        }
-                        return this;
-                    } catch (ex) {
-                        this.setError(ex);
-                    }
-                }
-            },
-            // These are some very basic renderers for common functions. 
-
-            // This can provide an initial layout, such as a panel, and provide container nodes,
-            // such as title and content.
-            renderLayout: {
-                value: function () {
-                    this.container.html(this.getTemplate('layout').render(this.createTemplateContext()));
-                    this.places = {
-                        title: this.container.find('[data-placeholder="title"]'),
-                        alert: this.container.find('[data-placeholder="alert"]'),
-                        content: this.container.find('[data-placeholder="content"]')
-                    };
-                }
-            },
-            setupUI: {
-                value: function () {
-                    return;
-                }
-            },
-            // Render a waiting icon while.
-            // This is typically done before getCurrentState which might be doing a time consuming ajax call
-            // to fetch data.
-            // NB depends on assets.
-            renderWaitingView: {
-                value: function () {
-                    this.places.content.html(html.loading());
-                }
-            },
-            setTitle: {
-                value: function (title) {
-                    this.places.title.html(this.widgetTitle);
-                }
-            },
-            clearButtons: {
-                value: function (title) {
-
-                }
-            },
-            addButton: {
-                value: function (cfg) {
-
-                }
-            },
-            loadCSSResource: {
-                value: function (url) {
-                    if (!this.haveCss) {
-                        return;
-                    }
-                    if (!this.cssLoaded) {
-                        this.cssLoaded = {};
-                    }
-                    if (this.cssLoaded[url]) {
-                        return;
-                    }
-                    $('<link>')
-                        .appendTo('head')
-                        .attr({
-                            type: 'text/css',
-                            rel: 'stylesheet'
-                        })
-                        .attr('href', url);
-                }
-            },
-            loadCSS: {
-                value: function () {
-                    this.loadCSSResource(Plugin.plugin.path + '/' + this.widgetName + '/style.css');
-                }
-            },
-            renderMessages: {
-                value: function () {
-                    if (this.places.alert) {
-                        this.places.alert.empty();
-                        for (var i = 0; i < this.messages.length; i++) {
-                            var message = this.messages[i];
-                            var alertClass = 'default';
-                            switch (message.type) {
-                                case 'success':
-                                    alertClass = 'success';
-                                    break;
-                                case 'info':
-                                    alertClass = 'info';
-                                    break;
-                                case 'warning':
-                                    alertClass = 'warning';
-                                    break;
-                                case 'danger':
-                                case 'error':
-                                    alertClass = 'danger';
-                                    break;
-                            }
-                            this.places.alert.append(
-                                '<div class="alert alert-dismissible alert-' + alertClass + '" role="alert">' +
-                                '<button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>' +
-                                '<strong>' + message.title + '</strong> ' + message.message + '</div>');
-                        }
-                    }
-                }
-            },
-            clearMessages: {
-                value: function () {
-                    this.messages = [];
-                    this.renderMessages();
-                }
-            },
-            addSuccessMessage: {
-                value: function (title, message) {
-                    if (message === undefined) {
-                        message = title;
-                        title = '';
-                    }
-                    this.messages.push({
-                        type: 'success',
-                        title: title,
-                        message: message
-                    });
-                    this.renderMessages();
-                }
-            },
-            addWarningMessage: {
-                value: function (title, message) {
-                    if (message === undefined) {
-                        message = title;
-                        title = '';
-                    }
-                    this.messages.push({
-                        type: 'warning',
-                        title: title,
-                        message: message
-                    });
-                    this.renderMessages();
-                }
-            },
-            addErrorMessage: {
-                value: function (title, message) {
-                    if (message === undefined) {
-                        message = title;
-                        title = '';
-                    }
-                    this.messages.push({
-                        type: 'error',
-                        title: title,
-                        message: message
-                    });
-                    this.renderMessages();
-                }
-            },
-            logNotice: {
-                value: function (source, message) {
-                    console.log('NOTICE: [' + source + '] ' + message);
-                }
-            },
-            logDeprecation: {
-                value: function (source, message) {
-                    console.log('DEPRECATION: [' + source + '] ' + message);
-                }
-            },
-            logWarning: {
-                value: function (source, message) {
-                    console.log('WARNING: [' + source + '] ' + message);
-                }
-            },
-            logError: {
-                value: function (source, message) {
-                    console.log('ERROR: [' + source + '] ' + message);
-                }
-            },
-            createListMaps: {
-                value: function () {
-                    this.listMaps = {};
-                    for (var listId in this.lists) {
-                        var list = this.lists[listId];
-
-                        this.listMaps[listId] = {};
-
-                        for (var i in list) {
-                            this.listMaps[listId][list[i].id] = list[i];
-                        }
-                    }
-                }
-            },
-            lists: {
-                value: {
-                    permissionFlags: [{
-                            id: 'r',
-                            label: 'Read',
-                            description: 'Read Only'
-                        },
-                        {
-                            id: 'w',
-                            label: 'Write',
-                            description: 'Read and Write'
-                        },
-                        {
-                            id: 'a',
-                            label: 'Admin',
-                            description: 'Read, Write, and Share'
-                        },
-                        {
-                            id: 'n',
-                            label: 'None',
-                            description: 'No Access'
-                        }],
-                    userRoles: [{
-                            id: 'pi',
-                            label: 'Principal Investigator'
-                        },
-                        {
-                            id: 'gradstudent',
-                            label: 'Graduate Student'
-                        },
-                        {
-                            id: 'developer',
-                            label: 'Developer'
-                        }, {
-                            id: 'tester',
-                            label: 'Tester'
-                        }, {
-                            id: 'documentation',
-                            label: 'Documentation'
-                        }, {
-                            id: 'general',
-                            label: 'General Interest'
-                        }],
-                    userClasses: [{
-                            id: 'pi',
-                            label: 'Principal Investigator'
-                        }, {
-                            id: 'gradstudent',
-                            label: 'Graduate Student'
-                        }, {
-                            id: 'kbase-internal',
-                            label: 'KBase Staff'
-                        }, {
-                            id: 'kbase-test',
-                            label: 'KBase Test/Beta User'
-                        }, {
-                            id: 'commercial',
-                            label: 'Commercial User'
-                        }],
-                    userTitles: [{
-                            id: 'mr',
-                            label: 'Mr.'
-                        }, {
-                            id: 'ms',
-                            label: 'Ms.'
-                        }, {
-                            id: 'dr',
-                            label: 'Dr.'
-                        }, {
-                            id: 'prof',
-                            label: 'Prof.'
-                        }],
-                    gravatarDefaults: [{
-                            id: 'mm',
-                            label: 'Mystery Man - simple, cartoon-style silhouetted outline'
-                        }, {
-                            id: 'identicon',
-                            label: 'Identicon - a geometric pattern based on an email hash'
-                        }, {
-                            id: 'monsterid',
-                            label: 'MonsterID - generated "monster" with different colors, faces, etc'
-                        }, {
-                            id: 'wavatar',
-                            label: 'Wavatar - generated faces with differing features and backgrounds'
-                        }, {
-                            id: 'retro',
-                            label: 'Retro - 8-bit arcade-style pixelated faces'
-                        }, {
-                            id: 'blank',
-                            label: 'Blank - A Blank Space'
-                        }]
-
-
+                this.subscriptions.push(this.runtime.recv('app', 'heartbeat', function (data) {
+                    this.handleHeartbeat(data);
+                }.bind(this)));
+            }
+        },
+        stopSubscriptions: {
+            value: function () {
+                if (this.subscriptions) {
+                    this.subscriptions.forEach(function (sub) {
+                        this.runtime.drop(sub);
+                    }.bind(this));
+                    this.subscriptions = [];
                 }
             }
-        });
+        },
+        stop: {
+            value: function () {
+                this.stopSubscriptions();
+                if (this.onStop) {
+                    this.onStop();
+                }
+            }
+        },
+        handleHeartbeat: {
+            value: function (data) {
+                if (this.refreshEnabled) {
+                    var now = (new Date()).getTime();
+                    if (!this.refreshLastTime) {
+                        this.refreshLastTime = now;
+                    }
+                    if (now - this.refreshLastTime >= this.refreshInterval) {
+                        if (this.onRefreshbeat) {
+                            this.refreshLastTime = now;
+                            this.onRefreshbeat(data);
+                        }
+                    }
+                }
+                if (this.onHeartbeat) {
+                    this.onHeartbeat(data);
+                }
+            }
+        },
+        onHeartbeat: {
+            value: function (data) {
+                switch (this.status) {
+                case 'dirty':
+                    this.status = 'clean';
+                    this.refresh()
+                        .catch(function (err) {
+                            this.setError(err);
+                        }.bind(this));
+                    break;
+                case 'error':
+                    this.status = 'errorshown';
+                    this.renderError();
+                    break;
+                }
+            }
+        },
+        onRefreshbeat: {
+            value: function () {
+                this.setInitialState()
+                    .catch(function (err) {
+                        this.setError(err);
+                    }.bind(this));
+                return this;
+            }
+        },
+        setup: {
+            value: function () {
+                // does whatever the widget needs to do to set itself up
+                // after config, params, and auth have been configured.
+                this.kbservice = ServiceApi.make({ runtime: this.runtime });
 
-        return DashboardWidget;
+                return this;
+            }
+        },
+        renderUI: {
+            value: function () {
+                // No longer necessary -- the plugin config for the widget can
+                // specify whether a css should be loaded.
+                // this.loadCSS();
+                this.renderLayout();
+                return this;
+            }
+        },
+        destroy: {
+            value: function () {
+                // tear down any events, etc. that are not attached
+                // to the local container.
+            }
+        },
+        // CONFIG
+        getConfig: {
+            value: function (key, defaultValue) {
+                var i;
+                for (i = 0; i < this.configs.length; i++) {
+                    if (Utils.getProp(this.configs[i], key) !== undefined) {
+                        return Utils.getProp(this.configs[i], key);
+                    }
+                }
+                return defaultValue;
+            }
+        },
+        setConfig: {
+            value: function (key, value) {
+                // sets it on the first config, which is the override config.
+                Utils.setProp(this.configs[0], key, value);
+            }
+        },
+        hasConfig: {
+            value: function (key) {
+                for (var i = 0; i < this.configs.length; i++) {
+                    if (Utils.getProp(this.configs[i], key) !== undefined) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        },
+        // PARAMETERS
+        // Parameters are typically passed into the init() method, and represent external values that vary for each
+        // new object. Typical use cases are url query variables.
+        setParam: {
+            value: function (path, value) {
+                Utils.setProp(this.params, path, value);
+                // this.refresh().done();
+                if (this.onParamChange) {
+                    this.onParamChange();
+                }
+            }
+        },
+        getParam: {
+            value: function (path, defaultValue) {
+                return Utils.getProp(this.params, path, defaultValue);
+            }
+        },
+        onParamChange: {
+            value: function () {
+                if (this.filterState) {
+                    this.filterState();
+                }
+            }
+        },
+        refresh: {
+            value: function () {
+                return new Promise(function (resolve, reject, notify) {
+                    this.render();
+                    resolve();
+                }.bind(this));
+            }
+        },
+        // STATE CHANGES
+
+        setState: {
+            value: function (path, value, norefresh) {
+                if (!Utils.isEqual(Utils.getProp(this.state, path), value)) {
+                    Utils.setProp(this.state, path, value);
+                    this.onStateChange();
+                    this.status = 'dirty';
+                }
+            }
+        },
+        onStateChange: {
+            value: function () {}
+        },
+        hasState: {
+            value: function (path) {
+                return Utils.hasProp(this.state, path);
+            }
+        },
+        isState: {
+            value: function (path) {
+                if (Utils.hasProp(this.state, path)) {
+                    if (Utils.getProp(this.state, path)) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        },
+        getState: {
+            value: function (path, defaultValue) {
+                return Utils.getProp(this.state, path, defaultValue);
+            }
+        },
+        deleteState: {
+            value: function () {
+                this.state = {};
+                this.status = 'dirty';
+            }
+        },
+        doState: {
+            value: function (path, fun, defaultValue) {
+                if (Utils.hasProp(this.state, path)) {
+                    return fun(Utils.getProp(this.state, path));
+                } else {
+                    return defaultValue;
+                }
+            }
+        },
+        setError: {
+            value: function (errorValue) {
+                Logger.logError({
+                    source: 'Dashboard/' + this.widgetName,
+                    title: 'ERROR in ' + this.widgetName,
+                    data: errorValue
+                });
+                this.status = 'error';
+                this.error = errorValue;
+
+            }
+        },
+        checkState: {
+            value: function (status) {
+                if (this.stateMeta.status === status) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        },
+        setInitialState: {
+            value: function (options) {
+                // The base method just resolves immediately (well, on the next turn.)
+                return new Promise(function (resolve, reject, notify) {
+                    resolve();
+                });
+            }
+        },
+        // EVENT HANDLERS
+
+        /*
+         AUTH
+         Auth state changes force a complete refetching of all data, and refreshing
+         of the visual state.
+         */
+        onLoggedIn: {
+            value: function (auth) {
+                this.setupAuth();
+                this.setup();
+                this.setInitialState({
+                        force: true
+                    })
+                    .then(function () {
+                        this.status = 'dirty';
+                        // this.refresh();
+                    }.bind(this))
+                    .catch(function (err) {
+                        this.setError(err);
+                    }.bind(this))
+                    .done();
+            }
+        },
+        onLoggedOut: {
+            value: function () {
+                this.setupAuth();
+                this.setup();
+                this.setInitialState({
+                        force: true
+                    })
+                    .then(function () {
+                        this.status = 'dirty';
+                    }.bind(this))
+                    .catch(function (err) {
+                        this.setError(err);
+                    }.bind(this))
+                    .done();
+            }
+        },
+        // STATE CALCULATIONS
+
+        // TEMPLATES
+        getTemplate: {
+            value: function (name) {
+                if (this.templates.cache[name] === undefined) {
+                    this.templates.cache[name] = this.templates.env.getTemplate(name + '.html');
+                }
+                return this.templates.cache[name];
+            }
+        },
+        createTemplateContext: {
+            value: function (additionalContext) {
+                /*
+                 var context = this.merge({}, this.context);
+                 return this.merge(context, {
+                 state: this.state,
+                 params: this.params
+                 })
+                 */
+
+                // We need to ensure that the context reflects the current auth state.
+                this.context.env.generatedId = this.genId();
+                this.context.env.loggedIn = this.runtime.getService('session').isLoggedIn();
+                if (this.runtime.service('session').isLoggedIn()) {
+                    this.context.env.loggedInUser = this.runtime.getService('session').getUsername();
+                    //this.context.env.loggedInUserRealName = Session.getUserRealName();
+                } else {
+                    delete this.context.env.loggedInUser;
+                    //delete this.context.env.loggedInUserRealName;
+                }
+
+                this.context.env.instanceId = this.instanceId;
+
+                if (additionalContext) {
+                    var temp = Utils.merge({}, this.context);
+                    var context = Utils.merge(temp, additionalContext);
+                } else {
+                    var context = this.context;
+                }
+
+                if (this.onCreateTemplateContext) {
+                    return this.onCreateTemplateContext(context);
+                } else {
+                    return context;
+                }
+            }
+        },
+        renderTemplate: {
+            value: function (name, context) {
+                var template = this.getTemplate(name);
+                if (!template) {
+                    throw 'Template ' + name + ' not found';
+                }
+                var context = context ? context : this.createTemplateContext();
+                return template.render(context);
+            }
+        },
+        // Generates a unique id for usage on synthesized dom elements.
+        genId: {
+            value: function () {
+                return 'gen_' + this.widgetName + '_' + this._generatedId++;
+            }
+        },
+        renderError: {
+            value: function () {
+                this.renderErrorView(this.error);
+            }
+        },
+        renderErrorView: {
+            value: function (errorObj) {
+                // Very simple error view.
+                if (errorObj) {
+                    if (typeof errorObj === 'string') {
+                        var error = {
+                            title: 'Error',
+                            message: errorObj
+                        };
+                    } else if (typeof errorObj === 'object') {
+                        if (errorObj instanceof Error) {
+                            var error = {
+                                title: 'Error',
+                                message: errorObj.message
+                            };
+                        } else if (errorObj.status && errorObj.error) {
+                            // this is a service error
+                            var error = {
+                                title: 'Service Error ' + errorObj.status,
+                                message: errorObj.error
+                            };
+                        } else {
+                            var error = {
+                                title: 'Unknown Error',
+                                message: '' + errorObj
+                            };
+                        }
+                    }
+                } else {
+                    var error = {
+                        title: 'Unknown Error',
+                        message: ''
+                    };
+                }
+                var context = this.createTemplateContext({
+                    error: error
+                });
+                this.places.content.html(this.getTemplate('error').render(context));
+            }
+        },
+        // DOM UPDATE
+
+        // An example universal renderer, which inspects the state of the widget and
+        // displays the appropriate content.
+        render: {
+            value: function () {
+                try {
+                    if (this.runtime.getService('session').isLoggedIn()) {
+                        this.setTitle(this.widgetTitle);
+                        this.places.content.html(this.renderTemplate('authorized'));
+                    } else {
+                        this.setTitle(this.widgetTitle);
+                        this.places.content.html(this.renderTemplate('unauthorized'));
+                    }
+                    if (this.afterRender) {
+                        this.afterRender();
+                    }
+                    return this;
+                } catch (ex) {
+                    this.setError(ex);
+                }
+            }
+        },
+        // These are some very basic renderers for common functions.
+
+        // This can provide an initial layout, such as a panel, and provide container nodes,
+        // such as title and content.
+        renderLayout: {
+            value: function () {
+                this.container.html(this.getTemplate('layout').render(this.createTemplateContext()));
+                this.places = {
+                    title: this.container.find('[data-placeholder="title"]'),
+                    alert: this.container.find('[data-placeholder="alert"]'),
+                    content: this.container.find('[data-placeholder="content"]')
+                };
+            }
+        },
+        setupUI: {
+            value: function () {
+                return;
+            }
+        },
+        // Render a waiting icon while.
+        // This is typically done before getCurrentState which might be doing a time consuming ajax call
+        // to fetch data.
+        // NB depends on assets.
+        renderWaitingView: {
+            value: function () {
+                this.places.content.html(html.loading());
+            }
+        },
+        setTitle: {
+            value: function (title) {
+                this.places.title.html(this.widgetTitle);
+            }
+        },
+        clearButtons: {
+            value: function (title) {
+
+            }
+        },
+        addButton: {
+            value: function (cfg) {
+
+            }
+        },
+        loadCSSResource: {
+            value: function (url) {
+                if (!this.haveCss) {
+                    return;
+                }
+                if (!this.cssLoaded) {
+                    this.cssLoaded = {};
+                }
+                if (this.cssLoaded[url]) {
+                    return;
+                }
+                $('<link>')
+                    .appendTo('head')
+                    .attr({
+                        type: 'text/css',
+                        rel: 'stylesheet'
+                    })
+                    .attr('href', url);
+            }
+        },
+        loadCSS: {
+            value: function () {
+                this.loadCSSResource(Plugin.plugin.path + '/' + this.widgetName + '/style.css');
+            }
+        },
+        renderMessages: {
+            value: function () {
+                if (this.places.alert) {
+                    this.places.alert.empty();
+                    for (var i = 0; i < this.messages.length; i++) {
+                        var message = this.messages[i];
+                        var alertClass = 'default';
+                        switch (message.type) {
+                        case 'success':
+                            alertClass = 'success';
+                            break;
+                        case 'info':
+                            alertClass = 'info';
+                            break;
+                        case 'warning':
+                            alertClass = 'warning';
+                            break;
+                        case 'danger':
+                        case 'error':
+                            alertClass = 'danger';
+                            break;
+                        }
+                        this.places.alert.append(
+                            '<div class="alert alert-dismissible alert-' + alertClass + '" role="alert">' +
+                            '<button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>' +
+                            '<strong>' + message.title + '</strong> ' + message.message + '</div>');
+                    }
+                }
+            }
+        },
+        clearMessages: {
+            value: function () {
+                this.messages = [];
+                this.renderMessages();
+            }
+        },
+        addSuccessMessage: {
+            value: function (title, message) {
+                if (message === undefined) {
+                    message = title;
+                    title = '';
+                }
+                this.messages.push({
+                    type: 'success',
+                    title: title,
+                    message: message
+                });
+                this.renderMessages();
+            }
+        },
+        addWarningMessage: {
+            value: function (title, message) {
+                if (message === undefined) {
+                    message = title;
+                    title = '';
+                }
+                this.messages.push({
+                    type: 'warning',
+                    title: title,
+                    message: message
+                });
+                this.renderMessages();
+            }
+        },
+        addErrorMessage: {
+            value: function (title, message) {
+                if (message === undefined) {
+                    message = title;
+                    title = '';
+                }
+                this.messages.push({
+                    type: 'error',
+                    title: title,
+                    message: message
+                });
+                this.renderMessages();
+            }
+        },
+        logNotice: {
+            value: function (source, message) {
+                console.warn('NOTICE: [' + source + '] ' + message);
+            }
+        },
+        logDeprecation: {
+            value: function (source, message) {
+                console.warn('DEPRECATION: [' + source + '] ' + message);
+            }
+        },
+        logWarning: {
+            value: function (source, message) {
+                console.warn('WARNING: [' + source + '] ' + message);
+            }
+        },
+        logError: {
+            value: function (source, message) {
+                console.error('ERROR: [' + source + '] ' + message);
+            }
+        },
+        createListMaps: {
+            value: function () {
+                this.listMaps = {};
+                for (var listId in this.lists) {
+                    var list = this.lists[listId];
+
+                    this.listMaps[listId] = {};
+
+                    for (var i in list) {
+                        this.listMaps[listId][list[i].id] = list[i];
+                    }
+                }
+            }
+        },
+        lists: {
+            value: {
+                permissionFlags: [{
+                        id: 'r',
+                        label: 'Read',
+                        description: 'Read Only'
+                    },
+                    {
+                        id: 'w',
+                        label: 'Write',
+                        description: 'Read and Write'
+                    },
+                    {
+                        id: 'a',
+                        label: 'Admin',
+                        description: 'Read, Write, and Share'
+                    },
+                    {
+                        id: 'n',
+                        label: 'None',
+                        description: 'No Access'
+                    }
+                ],
+                userRoles: [{
+                        id: 'pi',
+                        label: 'Principal Investigator'
+                    },
+                    {
+                        id: 'gradstudent',
+                        label: 'Graduate Student'
+                    },
+                    {
+                        id: 'developer',
+                        label: 'Developer'
+                    }, {
+                        id: 'tester',
+                        label: 'Tester'
+                    }, {
+                        id: 'documentation',
+                        label: 'Documentation'
+                    }, {
+                        id: 'general',
+                        label: 'General Interest'
+                    }
+                ],
+                userClasses: [{
+                    id: 'pi',
+                    label: 'Principal Investigator'
+                }, {
+                    id: 'gradstudent',
+                    label: 'Graduate Student'
+                }, {
+                    id: 'kbase-internal',
+                    label: 'KBase Staff'
+                }, {
+                    id: 'kbase-test',
+                    label: 'KBase Test/Beta User'
+                }, {
+                    id: 'commercial',
+                    label: 'Commercial User'
+                }],
+                userTitles: [{
+                    id: 'mr',
+                    label: 'Mr.'
+                }, {
+                    id: 'ms',
+                    label: 'Ms.'
+                }, {
+                    id: 'dr',
+                    label: 'Dr.'
+                }, {
+                    id: 'prof',
+                    label: 'Prof.'
+                }],
+                gravatarDefaults: [{
+                    id: 'mm',
+                    label: 'Mystery Man - simple, cartoon-style silhouetted outline'
+                }, {
+                    id: 'identicon',
+                    label: 'Identicon - a geometric pattern based on an email hash'
+                }, {
+                    id: 'monsterid',
+                    label: 'MonsterID - generated "monster" with different colors, faces, etc'
+                }, {
+                    id: 'wavatar',
+                    label: 'Wavatar - generated faces with differing features and backgrounds'
+                }, {
+                    id: 'retro',
+                    label: 'Retro - 8-bit arcade-style pixelated faces'
+                }, {
+                    id: 'blank',
+                    label: 'Blank - A Blank Space'
+                }]
+
+
+            }
+        }
     });
+
+    return DashboardWidget;
+});

@@ -2,15 +2,8 @@
     {% if state.narratives == 0 %}
 
     <div class="-card">
-        <div class="-box">
-            <a role="button" class="btn btn-primary btn-kbase" href="#narrativemanager/new" style="height: 100%; width: 100%; padding-top: 30px;" target="_blank">
-                <br><span class="fa fa-plus-circle" style="font-size: 300%; "></span><br><br> New Narrative
-            </a>
-        </div>
-    </div>
-    <div class="-card">
         <div class="-message">
-            <p>You do not currently own any Narratives.</p>
+            <p>You cannot currently see any Tutorial Narratives.</p>
             <p>It is easy to get started.</p>
             <p> <span class="fa fa-arrow-left"></span> Just click the big button to the left.</p>
         </div>
@@ -20,7 +13,7 @@
 
     <div class="-card">
         <div class="-message">
-            <p>No Narratives match your search.</p>
+            <p>No Tutorial Narratives match your search.</p>
         </div>
     </div>
 
@@ -34,25 +27,25 @@
                 {% for app in narrative.apps|sort("name") %}
                 <div class="app">
                    {% if app.info.icon.url %}
-                        <span style="font-size: 80%;">      
+                        <span style="font-size: 80%;">
                             <span class="fa-stack" style="text-align: center;">
                                 <img src="{{env.getConfig("services.narrative_method_store.image_url")}}{{app.info.icon.url}}" style="width: 20px; height: 20px">
                             </span>
                         </span>
                     {% else %}
-                        <span style="font-size: 80%;">      
+                        <span style="font-size: 80%;">
                             <span class="fa-stack">
                                 <span class="fa fa-square fa-stack-2x" style="color: rgb(103, 58, 183);"></span>
                                 <span class="fa fa-inverse fa-stack-1x fa-cube"></span>
                             </span>
                         </span>
-                    {% endif %} 
+                    {% endif %}
 
-                    {% if app.view %} 
+                    {% if app.view %}
                         {% if app.view.state == 'error' %}
                             <span data-toggle="tooltip" data-placement="auto top" data-container=".your-narratives-slider" title="{{app.view.title}}">
                                 {{app.name}}
-                            </span> 
+                            </span>
                         {% elif app.view.state == 'warning' %}
                             <a href="#appcatalog/app/{{app.id}}">
                                 <span data-toggle="tooltip" data-placement="auto top" data-container=".your-narratives-slider" title="{{app.view.title}}">
@@ -65,11 +58,11 @@
                                     {{app.name}}
                                 </span>
                             </a>
-                        {% endif %} 
+                        {% endif %}
                     {% else %}
                         <a href="#appcatalog/app/{{app.id}}">
                             {{app.name}}
-                        </a> 
+                        </a>
                     {% endif %}
                 </div>
                 {% endfor %}
@@ -80,21 +73,21 @@
                 <div class="method">
 
                     {% if method.info.icon.url %}
-                    <span style="font-size: 80%;">      
+                    <span style="font-size: 80%;">
                         <span class="fa-stack" style="text-align: center;">
                             <img src="{{env.getConfig("services.narrative_method_store.image_url")}}{{method.info.icon.url}}" style="width: 20px; height: 20px">
                         </span>
                     </span>
 
                     {% else %}
-                    <span style="font-size: 80%;">      
+                    <span style="font-size: 80%;">
                         <span class="fa-stack">
                             <span class="fa fa-square fa-stack-2x" style="color: rgb(103, 58, 183);"></span>
                     <span class="fa fa-inverse fa-stack-1x fa-cube" style=""></span>
                     </span>
                     </span>
-                    {% endif %} 
-                    
+                    {% endif %}
+
                     {% if method.view %} {% if method.view.state == 'error' %}
                     <span data-toggle="tooltip" data-placement="auto top" data-container=".your-narratives-slider" title="{{method.view.title}}">
                                 {{method.name}}
@@ -120,7 +113,7 @@
             </div>
             {% if narrative.cellTypes.markdown %}
             <div class="markdown-cells">
-                <span style="font-size: 80%;">      
+                <span style="font-size: 80%;">
                     <span class="fa-stack">
                         <span class="fa fa-circle fa-stack-2x" style="color: #2196F3"></span>
                 <span class="fa fa-inverse fa-stack-1x fa-paragraph"></span>
@@ -131,7 +124,7 @@
             {% endif %}
             {% if narrative.cellTypes.code %}
             <div class="code-cells">
-                <span style="font-size: 80%;">      
+                <span style="font-size: 80%;">
                     <span class="fa-stack">
                         <span class="fa fa-circle fa-stack-2x" style="color: #2196F3"></span>
                 <span class="fa fa-inverse fa-stack-1x fa-terminal"></span>
@@ -157,11 +150,11 @@
                 {% else %}
                 <span data-toggle="tooltip" data-placement="auto" title="This narrative has been shared with {{narrative.permissions|length}} user{{narrative.permissions|length|plural('s')}}." data-container="body">
 
-                    {% if narrative.permissions|length > 0 %} 
-                    {{ narrative.permissions | length }} 
-                    {% else %} 
-                    0 
-                    {% endif %} 
+                    {% if narrative.permissions|length > 0 %}
+                    {{ narrative.permissions | length }}
+                    {% else %}
+                    0
+                    {% endif %}
                     <span class="fa fa-share-alt"></span>
                 </span>
 

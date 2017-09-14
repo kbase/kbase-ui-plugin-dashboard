@@ -3,24 +3,20 @@ define([
     './DashboardWidget',
     'kb_widget/widgets/buttonBar',
     'bootstrap'
-], function (
-    $,
-    DashboardWidget,
-    ButtonBar
-) {
+], function($, DashboardWidget, ButtonBar) {
     'use strict';
     var widget = Object.create(DashboardWidget, {
         init: {
-            value: function (cfg) {
-                cfg.name = 'NarrativesWidget';
-                cfg.title = 'Your Narratives';
+            value: function(cfg) {
+                cfg.name = 'NarratorialsWidget';
+                cfg.title = 'Tutorial Narratives';
                 this.DashboardWidget_init(cfg);
 
                 return this;
             }
         },
         getViewTemplate: {
-            value: function () {
+            value: function() {
                 if (this.error) {
                     return 'error';
                 }
@@ -31,7 +27,7 @@ define([
             }
         },
         render: {
-            value: function () {
+            value: function() {
                 // Generate initial view based on the current state of this widget.
                 // Head off at the pass -- if not logged in, can't show profile.
                 this.places.title.html(this.widgetTitle);
@@ -43,26 +39,17 @@ define([
             }
         },
         setupUI: {
-            value: function () {
+            value: function() {
                 if (this.hasState('narratives') && this.getState('narratives').length > 0) {
                     this.buttonbar = Object.create(ButtonBar).init({
                         container: this.container.find('[data-placeholder="buttonbar"]')
                     });
                     this.buttonbar
                         .clear()
-                        .addButton({
-                            name: 'newnarrative',
-                            label: 'New Narrative',
-                            icon: 'plus-circle',
-                            style: 'primary',
-                            class: 'btn-kbase',
-                            url: '#/narrativemanager/new',
-                            external: true
-                        })
                         .addInput({
-                            placeholder: 'Search Your Narratives',
+                            placeholder: 'Search Tutorials',
                             place: 'end',
-                            onkeyup: function (e) {
+                            onkeyup: function(e) {
                                 this.setParam('filter', $(e.target).val());
                             }.bind(this)
                         });
@@ -70,7 +57,7 @@ define([
             }
         },
         filterNarratives: {
-            value: function () {
+            value: function() {
                 var search = this.getParam('filter'),
                     searchRe = new RegExp(search, 'i'),
                     nar;
@@ -78,10 +65,10 @@ define([
                     this.setState('narrativesFiltered', this.getState('narratives'));
                     return;
                 }
-                nar = this.getState('narratives').filter(function (x) {
+                nar = this.getState('narratives').filter(function(x) {
                     if (x.workspace.metadata.narrative_nice_name.match(searchRe) ||
                         (x.object.metadata.cellInfo &&
-                            (function (apps) {
+                            (function(apps) {
                                 for (var i in apps) {
                                     var app = apps[i];
                                     if (app.match(searchRe) || this.getAppName(app).match(searchRe)) {
@@ -90,7 +77,7 @@ define([
                                 }
                             }.bind(this))(Object.keys(x.object.metadata.cellInfo.app))) ||
                         (x.object.metadata.cellInfo &&
-                            (function (methods) {
+                            (function(methods) {
                                 for (var i in methods) {
                                     var method = methods[i];
                                     if (method.match(searchRe) || this.getMethodName(method).match(searchRe)) {
@@ -107,22 +94,22 @@ define([
             }
         },
         onParamChange: {
-            value: function () {
+            value: function() {
                 this.filterNarratives();
             }
         },
         onStateChange: {
-            value: function () {
+            value: function() {
 
                 // Need to filter narratives?
-                var count = this.doState('narratives', function (x) {
+                var count = this.doState('narratives', function(x) {
                     return x.length;
                 }, null);
-                var filtered = this.doState('narrativesFiltered', function (x) {
+                var filtered = this.doState('narrativesFiltered', function(x) {
                     return x.length;
                 }, null);
 
-                var sharingCount = this.doState('narratives', function (narratives) {
+                var sharingCount = this.doState('narratives', function(narratives) {
                     if (!narratives) {
                         return 0;
                     }
@@ -143,14 +130,22 @@ define([
                         filtered: filtered
                     });
                 }
+                /*
+                 Postal
+                 .channel('dashboard.metrics')
+                 .publish('update.narratives', {
+                 count: count
+                 }
+                 );
+                 */
             }
         },
         setInitialState: {
-            value: function (options) {
+            value: function(options) {
                 return this.getNarratives({
-                        type: 'mine'
+                      type : 'narratorial'
                     })
-                    .then(function (narratives) {
+                    .then(function(narratives) {
                         this.setState('narratives', narratives);
                         this.filterNarratives();
                     }.bind(this));
