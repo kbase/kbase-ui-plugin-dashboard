@@ -48,6 +48,11 @@ define([
                                         id: widgetSet.addWidget('dashboardCollaborators', {
                                             viewState: viewState
                                         })
+                                    }),
+                                    div({
+                                        id: widgetSet.addWidget('dashboardJobs', {
+                                            viewState: viewState
+                                        })
                                     })
                                 ])
                             ])

@@ -1,0 +1,49 @@
+<table class="table" id="job_stats_{{env.generatedId}}">
+    <thead>
+        <tr>
+            <th>App ID</th>
+            <th>Module</th>
+            <th>Submission Time</th>
+            <th>Start Time</th>
+            <th>End Time</th>
+            <th>Run Time</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for job in state.user_jobs %}
+        <tr>
+            <td>{{ job.app_id }}</td>
+            <td>{{ job.app_module_name }}</td>
+            <td>{{ job.creation_time }}</td>
+            <td>{{ job.exec_start_time }}</td>
+            <td>{{ job.finish_time }}</td>
+            <td>{{ job.run_time }}</td>
+            <td>{{ job.result }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<script>
+    require(['jquery', 'datatables', 'datatables_bootstrap'], function($) {
+        if ($.fn.dataTable.isDataTable('#job_stats_{{env.generatedId}}')) {
+            $('#job_stats_{{env.generatedId}}').dataTable();
+        } else {
+            $('#job_stats_{{env.generatedId}}').dataTable({
+                initComplete: function(settings) {
+                    var api = this.api();
+                    var rowCount = api.data().length;
+                    var pageSize = api.page.len();
+                    var wrapper = api.settings()[0].nTableWrapper;
+                    if (rowCount <= pageSize) {
+                        $(wrapper).find('.dataTables_length').hide();
+                        $(wrapper).find('.dataTables_filter').hide();
+                        $(wrapper).find('.dataTables_paginate').hide();
+                        $(wrapper).find('.dataTables_info').hide();
+                    }
+                }
+            });
+        }
+    });
+</script>

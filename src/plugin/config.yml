@@ -43,6 +43,10 @@ install:
             module: ./widgets/SharedNarrativesWidget
             id: dashboardSharedNarratives
             type: object
+        -
+            module: ./widgets/JobsWidget
+            id: dashboardJobs
+            type: object
     routes:
         -
             path: ['dashboard']
