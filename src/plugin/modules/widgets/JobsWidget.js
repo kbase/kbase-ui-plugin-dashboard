@@ -84,7 +84,9 @@ define([
               module : 'kb_Metrics',
             });
 
-            return self.metricsClient.callFunc('get_app_metrics', [{epoch_range : [then, now], user_ids : ['thomasoniii']}]).then(function(data) {
+            var username = this.runtime.service('session').getUsername();
+
+            return self.metricsClient.callFunc('get_app_metrics', [{epoch_range : [then, now], user_ids : [ username ]}]).then(function(data) {
               var jobs = data[0].job_states;
 
               jobs.forEach( function( job, idx ) {
