@@ -399,8 +399,8 @@ define([
                     }),
                     tag = this.getTag();
                 return Promise.all([
-                        methodStore.list_methods({ tag: tag })
-                    ])
+                    methodStore.list_methods({ tag: tag })
+                ])
                     .spread(function (release) {
                         var appMap = {};
                         release.forEach(function (app) {
@@ -415,35 +415,23 @@ define([
             }
         },
         getNarratives: {
-            value: function (params, filter) {
+            value: function (params) {
                 return Promise.all([
-                        this.kbservice.getNarratives({
-                            params: params
-                        }),
-                        this.getApps()
-                        // this.getMethods()
-                    ])
+                    this.kbservice.getNarratives({
+                        params: params
+                    }),
+                    this.getApps()
+                    // this.getMethods()
+                ])
                     .spread(function (narratives, appsMap) {
                         narratives.forEach(function (narrative) {
                             narrative.methods = narrative.methods.map(function (method) {
-                                var methodInfo, methodId, legacy;
+                                var methodId;
                                 if (method.module) {
                                     methodId = [method.module, method.id].join('/');
-                                    legacy = false;
                                 } else {
                                     methodId = method.id;
-                                    legacy = true;
                                 }
-                                // methodInfo = methodsMap[methodId];
-                                // if (methodInfo) {
-                                //     return {
-                                //         namespace: method.module,
-                                //         id: method.id,
-                                //         info: methodInfo.info,
-                                //         name: methodInfo.info.name,
-                                //         tag: legacy ? null : methodInfo.tag
-                                //     };
-                                // }
                                 return {
                                     id: methodId,
                                     name: method.id,
@@ -587,7 +575,7 @@ define([
             }
         },
         onHeartbeat: {
-            value: function (data) {
+            value: function () {
                 switch (this.status) {
                 case 'dirty':
                     this.status = 'clean';
@@ -690,7 +678,7 @@ define([
         },
         refresh: {
             value: function () {
-                return new Promise(function (resolve, reject, notify) {
+                return new Promise(function (resolve) {
                     this.render();
                     resolve();
                 }.bind(this));
@@ -699,7 +687,7 @@ define([
         // STATE CHANGES
 
         setState: {
-            value: function (path, value, norefresh) {
+            value: function (path, value) {
                 if (!Utils.isEqual(Utils.getProp(this.state, path), value)) {
                     Utils.setProp(this.state, path, value);
                     this.onStateChange();
@@ -767,9 +755,9 @@ define([
             }
         },
         setInitialState: {
-            value: function (options) {
+            value: function () {
                 // The base method just resolves immediately (well, on the next turn.)
-                return new Promise(function (resolve, reject, notify) {
+                return new Promise(function (resolve) {
                     resolve();
                 });
             }
@@ -782,12 +770,12 @@ define([
          of the visual state.
          */
         onLoggedIn: {
-            value: function (auth) {
+            value: function () {
                 this.setupAuth();
                 this.setup();
                 this.setInitialState({
-                        force: true
-                    })
+                    force: true
+                })
                     .then(function () {
                         this.status = 'dirty';
                         // this.refresh();
@@ -803,8 +791,8 @@ define([
                 this.setupAuth();
                 this.setup();
                 this.setInitialState({
-                        force: true
-                    })
+                    force: true
+                })
                     .then(function () {
                         this.status = 'dirty';
                     }.bind(this))
@@ -848,11 +836,12 @@ define([
 
                 this.context.env.instanceId = this.instanceId;
 
+                let context;
                 if (additionalContext) {
                     var temp = Utils.merge({}, this.context);
-                    var context = Utils.merge(temp, additionalContext);
+                    context = Utils.merge(temp, additionalContext);
                 } else {
-                    var context = this.context;
+                    context = this.context;
                 }
 
                 if (this.onCreateTemplateContext) {
@@ -868,7 +857,7 @@ define([
                 if (!template) {
                     throw 'Template ' + name + ' not found';
                 }
-                var context = context ? context : this.createTemplateContext();
+                context = context ? context : this.createTemplateContext();
                 return template.render(context);
             }
         },
@@ -886,33 +875,34 @@ define([
         renderErrorView: {
             value: function (errorObj) {
                 // Very simple error view.
+                let error;
                 if (errorObj) {
                     if (typeof errorObj === 'string') {
-                        var error = {
+                        error = {
                             title: 'Error',
                             message: errorObj
                         };
                     } else if (typeof errorObj === 'object') {
                         if (errorObj instanceof Error) {
-                            var error = {
+                            error = {
                                 title: 'Error',
                                 message: errorObj.message
                             };
                         } else if (errorObj.status && errorObj.error) {
                             // this is a service error
-                            var error = {
+                            error = {
                                 title: 'Service Error ' + errorObj.status,
                                 message: errorObj.error
                             };
                         } else {
-                            var error = {
+                            error = {
                                 title: 'Unknown Error',
                                 message: '' + errorObj
                             };
                         }
                     }
                 } else {
-                    var error = {
+                    error = {
                         title: 'Unknown Error',
                         message: ''
                     };
@@ -975,17 +965,17 @@ define([
             }
         },
         setTitle: {
-            value: function (title) {
+            value: function () {
                 this.places.title.html(this.widgetTitle);
             }
         },
         clearButtons: {
-            value: function (title) {
+            value: function () {
 
             }
         },
         addButton: {
-            value: function (cfg) {
+            value: function () {
 
             }
         },
@@ -1129,47 +1119,47 @@ define([
         lists: {
             value: {
                 permissionFlags: [{
-                        id: 'r',
-                        label: 'Read',
-                        description: 'Read Only'
-                    },
-                    {
-                        id: 'w',
-                        label: 'Write',
-                        description: 'Read and Write'
-                    },
-                    {
-                        id: 'a',
-                        label: 'Admin',
-                        description: 'Read, Write, and Share'
-                    },
-                    {
-                        id: 'n',
-                        label: 'None',
-                        description: 'No Access'
-                    }
+                    id: 'r',
+                    label: 'Read',
+                    description: 'Read Only'
+                },
+                {
+                    id: 'w',
+                    label: 'Write',
+                    description: 'Read and Write'
+                },
+                {
+                    id: 'a',
+                    label: 'Admin',
+                    description: 'Read, Write, and Share'
+                },
+                {
+                    id: 'n',
+                    label: 'None',
+                    description: 'No Access'
+                }
                 ],
                 userRoles: [{
-                        id: 'pi',
-                        label: 'Principal Investigator'
-                    },
-                    {
-                        id: 'gradstudent',
-                        label: 'Graduate Student'
-                    },
-                    {
-                        id: 'developer',
-                        label: 'Developer'
-                    }, {
-                        id: 'tester',
-                        label: 'Tester'
-                    }, {
-                        id: 'documentation',
-                        label: 'Documentation'
-                    }, {
-                        id: 'general',
-                        label: 'General Interest'
-                    }
+                    id: 'pi',
+                    label: 'Principal Investigator'
+                },
+                {
+                    id: 'gradstudent',
+                    label: 'Graduate Student'
+                },
+                {
+                    id: 'developer',
+                    label: 'Developer'
+                }, {
+                    id: 'tester',
+                    label: 'Tester'
+                }, {
+                    id: 'documentation',
+                    label: 'Documentation'
+                }, {
+                    id: 'general',
+                    label: 'General Interest'
+                }
                 ],
                 userClasses: [{
                     id: 'pi',

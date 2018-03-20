@@ -69,23 +69,23 @@ define([
                      }]
                      })
                      */
-                    .addInput({
-                        placeholder: 'Search',
-                        place: 'end',
-                        onkeyup: function(e) {
+                        .addInput({
+                            placeholder: 'Search',
+                            place: 'end',
+                            onkeyup: function(e) {
                             // little hack to make sure the public narratives is opened up.
-                            var collapse = this.places.title,
-                                id;
-                            if (collapse.hasClass('collapsed')) {
-                                id = collapse.attr('data-target');
-                                $(id).collapse('show');
-                            }
+                                var collapse = this.places.title,
+                                    id;
+                                if (collapse.hasClass('collapsed')) {
+                                    id = collapse.attr('data-target');
+                                    $(id).collapse('show');
+                                }
 
-                            this.filterState({
-                                search: $(e.target).val()
-                            });
-                        }.bind(this)
-                    });
+                                this.filterState({
+                                    search: $(e.target).val()
+                                });
+                            }.bind(this)
+                        });
                 }
             }
         },
@@ -182,10 +182,10 @@ define([
             }
         },
         setInitialState: {
-            value: function(options) {
+            value: function() {
                 return this.getNarratives({
-                      type : 'public'
-                    })
+                    type : 'public'
+                })
                     .then(function(narratives) {
                         narratives = narratives.filter(function(x) {
                             // Show only narratives which are public, no matter the
