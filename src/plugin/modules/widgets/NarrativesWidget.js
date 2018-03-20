@@ -146,10 +146,10 @@ define([
             }
         },
         setInitialState: {
-            value: function (options) {
+            value: function () {
                 return this.getNarratives({
-                        type: 'mine'
-                    })
+                    type: 'mine'
+                })
                     .then(function (narratives) {
                         this.setState('narratives', narratives);
                         this.filterNarratives();
