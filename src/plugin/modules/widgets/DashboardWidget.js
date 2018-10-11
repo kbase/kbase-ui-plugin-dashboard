@@ -112,7 +112,7 @@ define([
                     new nunjucks.WebLoader(Plugin.plugin.fullPath + '/DashboardWidget/templates', true)
                 ];
                 this.templates.env = new nunjucks.Environment(loaders, {
-                    autoescape: false
+                    autoescape: true
                 });
                 this.templates.env.addFilter('roleLabel', function (role) {
                     if (this.listMaps['userRoles'][role]) {
