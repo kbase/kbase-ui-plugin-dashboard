@@ -14,7 +14,6 @@
             ],
             "kbase-common-es6": "bower_components/kbase-common-es6/src/**",
             "kbase-common-js": "bower_components/kbase-common-js/dist/kb_common/**",
-            "kbase-ui-widget": "bower_components/kbase-ui-widget/src/kb/widget/**",
             "kbase-service-clients-js": "bower_components/kbase-service-clients-js/dist/kb_service/**",
             "font-awesome": [
                 { "bower_components/font-awesome/css/font-awesome.css": "css/font-awesome.css" },
