@@ -11,13 +11,13 @@
         "url": "git://github.com/kbase/kbase-ui-plugin-dashboard"
     },
     "dependencies": {
-        "bluebird": "3.5.3",
-        "bootstrap": "3.4.1",
+        "bluebird": "^3.5.3",
+        "bootstrap": "^3.4.1",
         "nunjucks": "^3.0.0",
-        "jquery": "2.2.4",
-        "kbase-service-clients-js": "3.3.5",
-        "kbase-common-js": "2.18.1",
-        "kbase-common-es6": "0.10.14"
+        "jquery": "^2.2.4",
+        "kbase-service-clients-js": "^3.3.5",
+        "kbase-common-js": "^2.18.1",
+        "kbase-common-es6": "^0.10.14"
     },
     "devDependencies": {},
     "license": "SEE LICENSE IN LICENSE.md"
