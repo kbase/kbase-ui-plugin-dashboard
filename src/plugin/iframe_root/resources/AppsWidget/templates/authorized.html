@@ -25,7 +25,7 @@
                 {% else %} {% for app in state.appOwnership.owned|sort("count") %} {% if app.count > 0 %}
                 <tr>
                     <td valign="baseline" style="vertical-align: top;">
-                        <a href="#/narrativestore/app/{{ app.app.id }}" target="_blank">{{ app.app.name }}</a>
+                        <a href="/#narrativestore/app/{{ app.app.id }}" target="_blank">{{ app.app.name }}</a>
                     </td>
                     <td width="30px" valign="baseline" style="vertical-align: top;">
                         <div class="-switchable">
@@ -34,7 +34,7 @@
                             </div>
                             <div class="-if-active">
                                 <a
-                                    href="#/narrativemanager/new?app={{ app.app.id }}"
+                                    href="/#narrativemanager/new?app={{ app.app.id }}"
                                     class="btn btn-default btn-link"
                                     target="_blank"
                                     data-toggle="tooltip"
@@ -63,7 +63,7 @@
                 {% else %} {% for app in state.appOwnership.shared|sort("count") %} {% if app.count > 0 %}
                 <tr>
                     <td valign="baseline" style="vertical-align: top;">
-                        <a href="#/narrativestore/app/{{ app.app.id }}" target="_blank">{{ app.app.name }}</a>
+                        <a href="/#narrativestore/app/{{ app.app.id }}" target="_blank">{{ app.app.name }}</a>
                     </td>
                     <td width="30px" valign="baseline" style="vertical-align: top;">
                         <div class="-switchable">
@@ -72,7 +72,7 @@
                             </div>
                             <div class="-if-active">
                                 <a
-                                    href="#/narrativemanager/new?app={{ app.app.id }}"
+                                    href="/#narrativemanager/new?app={{ app.app.id }}"
                                     class="btn btn-default btn-link"
                                     target="_blank"
                                     data-toggle="tooltip"
@@ -101,7 +101,7 @@
                 {% else %} {% for app in state.appOwnership.public|sort("count") %} {% if app.count > 0 %}
                 <tr>
                     <td valign="baseline" style="vertical-align: top;">
-                        <a href="#/narrativestore/app/{{ app.app.id }}" target="_blank">{{ app.app.name }}</a>
+                        <a href="/#narrativestore/app/{{ app.app.id }}" target="_blank">{{ app.app.name }}</a>
                     </td>
                     <td width="30px" valign="baseline" style="vertical-align: top;">
                         <div class="-switchable">
@@ -110,7 +110,7 @@
                             </div>
                             <div class="-if-active">
                                 <a
-                                    href="#/narrativemanager/new?app={{ app.app.id }}"
+                                    href="/#narrativemanager/new?app={{ app.app.id }}"
                                     class="btn btn-default btn-link"
                                     target="_blank"
                                     data-toggle="tooltip"

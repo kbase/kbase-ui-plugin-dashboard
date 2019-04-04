@@ -47,7 +47,7 @@ define(['jquery', './DashboardWidget', 'lib/widget/buttonBar', 'bootstrap'], fun
                             icon: 'plus-circle',
                             style: 'primary',
                             class: 'btn-kbase',
-                            url: '#/narrativemanager/new',
+                            url: '/#narrativemanager/new',
                             external: true
                         })
                         .addInput({

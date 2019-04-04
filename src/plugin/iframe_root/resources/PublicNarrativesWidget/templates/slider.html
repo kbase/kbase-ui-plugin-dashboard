@@ -47,20 +47,20 @@
                                         {{app.name}}
                                     </span> 
                                 {% elif app.view.state == 'warning' %}
-                                    <a href="#appcatalog/app/{{app.id}}" target="_blank">
+                                    <a href="/#catalog/apps/{{app.id}}" target="_blank">
                                         <span data-toggle="tooltip" data-placement="auto top" data-container=".your-narratives-slider" title="{{app.view.title}}">
                                             {{app.name}}
                                         </span>
                                     </a>
                                 {% else %}
-                                    <a href="#appcatalog/app/{{app.id}}" target="_blank">
+                                    <a href="/#catalog/apps/{{app.id}}" target="_blank">
                                         <span data-toggle="tooltip" data-placement="auto top" data-container="#narrative-{{narrative.object.wsid}}" title="{{app.view.title}}">
                                             {{app.name}}
                                         </span>
                                     </a>
                                 {% endif %} 
                             {% else %}
-                                <a href="#appcatalog/app/{{app.id}}" target="_blank">
+                                <a href="/#catalog/apps/{{app.id}}" target="_blank">
                                     {{app.name}}
                                 </a> 
                             {% endif %}
@@ -93,20 +93,20 @@
                                             {{method.name}}
                                         </span> 
                                     {% elif method.view.state == 'warning' %}
-                                        <a href="#appcatalog/app/{{method | methodPath}}" target="_blank">
+                                        <a href="/#catalog/apps/{{method | methodPath}}" target="_blank">
                                             <span data-toggle="tooltip" data-placement="auto top" data-container=".public-narratives-slider" title="{{method.view.title}}">
                                                 {{method.name}}
                                             </span>
                                         </a>
                                     {% else %}
-                                        <a href="#appcatalog/app/{{method | methodPath}}" target="_blank">
+                                        <a href="/#catalog/apps/{{method | methodPath}}" target="_blank">
                                             <span data-toggle="tooltip" data-placement="auto top" data-container="#narrative-{{narrative.object.wsid}}" title="{{method.view.title}}">
                                                 {{method.name}}
                                             </span>
                                         </a>
                                     {% endif %} 
                                 {% else %}
-                                    <a href="#appcatalog/app/{{method | methodPath}}" target="_blank">
+                                    <a href="/#catalog/apps/{{method | methodPath}}" target="_blank">
                                         {{method.name}}
                                     </a> 
                                 {% endif %}
@@ -140,7 +140,7 @@
                 </div>
                 <div class="-saved">
                     <div class="date" style="font-style: italic;">
-                        saved {{narrative.object.save_date | jsDatestring | dateFormat }} by {% if narrative.object.saved_by == env.loggedInUser %}you{% else %}<a href="#/people/{{narrative.object.saved_by}}">{{narrative.object.saved_by}}</a>{% endif %}
+                        saved {{narrative.object.save_date | jsDatestring | dateFormat }} by {% if narrative.object.saved_by == env.loggedInUser %}you{% else %}<a href="/#people/{{narrative.object.saved_by}}" target="_parent">{{narrative.object.saved_by}}</a>{% endif %}
                     </div>
                 </div>
                 <div class="-footer">
