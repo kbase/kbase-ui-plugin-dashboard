@@ -1,12 +1,4 @@
-define([
-    'kb_lib/html',
-    'kb_lib/windowChannel',
-    'kb_lib/httpUtils'
-], function (
-    html,
-    WindowChannel,
-    httpUtils
-) {
+define(['kb_lib/html', 'kb_lib/windowChannel', 'kb_lib/httpUtils'], function (html, WindowChannel, httpUtils) {
     'use strict';
 
     var t = html.tag,
@@ -44,28 +36,32 @@ define([
 
             // The iframe framework, designed to give a full height and width responsive
             // window with the content area of the ui.
-            this.content = div({
-                style: {
-                    flex: '1 1 0px',
-                    display: 'flex',
-                    flexDirection: 'column'
-                }
-            }, [
-                iframe({
-                    id: this.id,
-                    name: this.id,
-                    dataParams: encodeURIComponent(JSON.stringify(params)),
+            this.content = div(
+                {
                     style: {
-                        width: '100%',
                         flex: '1 1 0px',
                         display: 'flex',
                         flexDirection: 'column'
-                    },
-                    frameborder: '0',
-                    scrolling: 'no',
-                    // src: url
-                })
-            ]);
+                    }
+                },
+                [
+                    iframe({
+                        id: this.id,
+                        name: this.id,
+                        dataKBTesthookIframe: 'plugin-iframe',
+                        dataParams: encodeURIComponent(JSON.stringify(params)),
+                        style: {
+                            width: '100%',
+                            flex: '1 1 0px',
+                            display: 'flex',
+                            flexDirection: 'column'
+                        },
+                        frameborder: '0',
+                        scrolling: 'no'
+                        // src: url
+                    })
+                ]
+            );
 
             this.node = null;
         }
@@ -112,11 +108,9 @@ define([
                 // channelId: this.id,
                 hostId: this.id,
                 params: this.params
-
             });
 
             this.iframe.attach(this.container);
-
 
             // this.iframeMessages = new WindowMessages({
             //     // window: window,
@@ -224,7 +218,7 @@ define([
                         token: this.runtime.service('session').getAuthToken(),
                         username: this.runtime.service('session').getUsername(),
                         realname: this.runtime.service('session').getRealname(),
-                        email: this.runtime.service('session').getEmail(),
+                        email: this.runtime.service('session').getEmail()
                     });
                 });
                 this.runtime.receive('session', 'loggedout', () => {
@@ -241,12 +235,16 @@ define([
 
                 if (this.useChannel) {
                     try {
-                        this.iframe.iframe.addEventListener('load', () => {
-                            this.setupChannel();
-                            resolve();
-                        }, {
-                            once: true
-                        });
+                        this.iframe.iframe.addEventListener(
+                            'load',
+                            () => {
+                                this.setupChannel();
+                                resolve();
+                            },
+                            {
+                                once: true
+                            }
+                        );
                     } catch (ex) {
                         reject(ex);
                     }

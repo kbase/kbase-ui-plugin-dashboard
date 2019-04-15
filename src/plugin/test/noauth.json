@@ -4,16 +4,7 @@
         "specs": [
             {
                 "description": "should get the signin page",
-                "baseSelector": [
-                    {
-                        "type": "plugin",
-                        "value": "auth2-client"
-                    },
-                    {
-                        "type": "component",
-                        "value": "login-view"
-                    }
-                ],
+                "baseSelector": [],
                 "tasks": [
                     {
                         "title": "navigate to dashboard ",
@@ -22,7 +13,26 @@
                         }
                     },
                     {
+                        "switchToFrame": {
+                            "selector": [
+                                {
+                                    "type": "iframe",
+                                    "value": "plugin-iframe"
+                                }
+                            ],
+                            "wait": 1000
+                        }
+                    },
+                    {
                         "selector": [
+                            {
+                                "type": "plugin",
+                                "value": "auth2-client"
+                            },
+                            {
+                                "type": "component",
+                                "value": "login-view"
+                            },
                             {
                                 "type": "field",
                                 "value": "requested-path"

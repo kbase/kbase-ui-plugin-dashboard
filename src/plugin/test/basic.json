@@ -4,30 +4,36 @@
         "specs": [
             {
                 "description": "should have main panel framing appear when hit the path",
-                "baseSelector": [
-                    {
-                        "type": "plugin",
-                        "value": "dashboard"
-                    }
-                ],
+                "baseSelector": [],
                 "tasks": [
                     {
                         "title": "login",
-                        "subtask": "dashboard"
+                        "subtask": "login"
                     },
+
                     {
-                        "title": "navigate to dashbaord (should be there already)",
+                        "title": "navigate to dashboard",
                         "navigate": {
                             "path": "dashboard"
                         }
                     },
                     {
-                        "selector": [                            
-                        ],
-                        "wait": 10000
+                        "switchToFrame": {
+                            "selector": [
+                                {
+                                    "type": "iframe",
+                                    "value": "plugin-iframe"
+                                }
+                            ],
+                            "wait": 1000
+                        }
                     },
                     {
                         "selector": [
+                            {
+                                "type": "plugin",
+                                "value": "dashboard"
+                            },
                             {
                                 "type": "widget",
                                 "value": "narratives-widget"
@@ -42,6 +48,10 @@
                     {
                         "selector": [
                             {
+                                "type": "plugin",
+                                "value": "dashboard"
+                            },
+                            {
                                 "type": "widget",
                                 "value": "narratorials-widget"
                             },
@@ -54,6 +64,10 @@
                     },
                     {
                         "selector": [
+                            {
+                                "type": "plugin",
+                                "value": "dashboard"
+                            },
                             {
                                 "type": "widget",
                                 "value": "shared-narratives-widget"
@@ -68,6 +82,10 @@
                     {
                         "selector": [
                             {
+                                "type": "plugin",
+                                "value": "dashboard"
+                            },
+                            {
                                 "type": "widget",
                                 "value": "public-narratives-widget"
                             },
@@ -77,17 +95,7 @@
                             }
                         ],
                         "wait": 10000
-                    },
-                    {
-                        "selector": [
-                            {
-                                "type": "widget",
-                                "value": "metrics-widget"
-                            }
-                        ],
-                        "wait": 10000
                     }
-                   
                 ]
             }
         ]
