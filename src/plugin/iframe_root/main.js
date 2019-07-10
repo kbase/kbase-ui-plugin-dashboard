@@ -45,17 +45,15 @@
             const integration = new Integration({
                 rootWindow: window
             });
-            // try {
-            //     integration.start();
-            // } catch (ex) {
-            //     console.error('Error starting main: ', ex.message);
-            // }
+            try {
+                integration.start();
+            } catch (ex) {
+                console.error('Error starting main: ', ex.message);
+            }
 
             const {
                 params: { config, token, username }
             } = integration.getParamsFromIFrame();
-
-            // console.log('config?', pluginConfig);
 
             const runtime = new Runtime({
                 config,

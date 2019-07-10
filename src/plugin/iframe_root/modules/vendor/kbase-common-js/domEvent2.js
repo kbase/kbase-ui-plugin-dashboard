@@ -1,6 +1,9 @@
 /*global define,console*/
 /*jslint white:true,browser:true*/
-define(['jquery', 'kb_lib/html'], function ($, html) {
+define([
+    'jquery',
+    'kb_common/html'
+], function ($, html) {
     'use strict';
 
     function factory(config) {
@@ -53,7 +56,7 @@ define(['jquery', 'kb_lib/html'], function ($, html) {
             return id;
         }
         function attachEvents(eventsRoot) {
-            var root = globalRoot || eventsRoot;
+            var root = globalRoot || eventsRoot;            
             events.forEach(function (event) {
                 var node = root.querySelector(event.selector);
                 if (!node) {

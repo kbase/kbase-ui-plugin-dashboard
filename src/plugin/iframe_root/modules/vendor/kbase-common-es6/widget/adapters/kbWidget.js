@@ -1,16 +1,29 @@
-define(['jquery', 'underscore', 'bluebird', 'kb_lib/html'], function ($, _, Promise, html) {
+
+define([
+    'jquery',
+    'underscore',
+    'bluebird',
+    'kb_common/html'
+], function (
+    $,
+    _,
+    Promise,
+    html
+) {
     'use strict';
 
     function createBSPanel($node, title) {
         var id = html.genId(),
             div = html.tag('div'),
             span = html.tag('span');
-        $node.html(
-            div({ class: 'panel panel-default ' }, [
-                div({ class: 'panel-heading' }, [span({ class: 'panel-title' }, title)]),
-                div({ class: 'panel-body' }, [div({ id: id })])
+        $node.html(div({ class: 'panel panel-default ' }, [
+            div({ class: 'panel-heading' }, [
+                span({ class: 'panel-title' }, title)
+            ]),
+            div({ class: 'panel-body' }, [
+                div({ id: id })
             ])
-        );
+        ]));
         return $('#' + id);
     }
 
@@ -94,5 +107,5 @@ define(['jquery', 'underscore', 'bluebird', 'kb_lib/html'], function ($, _, Prom
         }
     }
 
-    return { KBWidgetAdapter };
+    return {KBWidgetAdapter};
 });
