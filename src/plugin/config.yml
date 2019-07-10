@@ -11,48 +11,47 @@ source:
     ## NB: need to quote file names, otherwise
     modules:
     styles:
-        -
-            file: styles.css
+        # - file: styles.css
 install:
     widgets:
-        -
-            module: ./dashboardPanel
-            id: dashboardPanel
-            type: factory
-        -
-            module: ./widgets/CollaboratorsWidget
-            id: dashboardCollaborators
-            type: object
-        -
-            module: ./widgets/MetricsWidget
-            id: dashboardMetrics
-            type: object
-        -
-            module: ./widgets/NarrativesWidget
-            id: dashboardNarratives
-            type: object
-        -
-            module: ./widgets/PublicNarrativesWidget
-            id: dashboardPublicNarratives
-            type: object
-        -
-            module: ./widgets/NarratorialsWidget
-            id: dashboardNarratorials
-            type: object
-        -
-            module: ./widgets/SharedNarrativesWidget
-            id: dashboardSharedNarratives
-            type: object
+        - module: ./panel
+          id: kb_plugin_dashboard
+          type: es6
+        # -
+        #     module: ./dashboardPanel
+        #     id: dashboardPanel
+        #     type: factory
+        # -
+        #     module: ./widgets/CollaboratorsWidget
+        #     id: dashboardCollaborators
+        #     type: object
+        # -
+        #     module: ./widgets/MetricsWidget
+        #     id: dashboardMetrics
+        #     type: object
+        # -
+        #     module: ./widgets/NarrativesWidget
+        #     id: dashboardNarratives
+        #     type: object
+        # -
+        #     module: ./widgets/PublicNarrativesWidget
+        #     id: dashboardPublicNarratives
+        #     type: object
+        # -
+        #     module: ./widgets/NarratorialsWidget
+        #     id: dashboardNarratorials
+        #     type: object
+        # -
+        #     module: ./widgets/SharedNarrativesWidget
+        #     id: dashboardSharedNarratives
+        #     type: object
     routes:
-        -
-            path: ['dashboard']
-            widget: dashboardPanel
-            authorization: true
+        - path: ["dashboard"]
+          widget: kb_plugin_dashboard
+          authorization: true
     menu:
-        -
-            name: dashboard
-            menus: ['authenticated']
-            definition:
-                path: ['dashboard']
-                label: Dashboard
-                icon: dashboard
+        - name: dashboard
+          definition:
+              path: ["dashboard"]
+              label: Dashboard
+              icon: dashboard
