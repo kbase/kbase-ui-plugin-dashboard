@@ -46,57 +46,7 @@ define(['./windowChannel', './runtime'], (WindowChannel, Runtime) => {
             return JSON.parse(decodeURIComponent(this.rootWindow.frameElement.getAttribute('data-params')));
         }
 
-        // render(ko) {
-        //     this.rootViewModel = new RootViewModel({
-        //         runtime: this.runtime,
-        //         hostChannel: this.hostChannel,
-        //         authorized: this.authorized,
-        //         authorization: this.authorization,
-        //         pluginParams: this.pluginParams
-        //     });
-        //     this.container.innerHTML = div(
-        //         {
-        //             style: {
-        //                 flex: '1 1 0px',
-        //                 display: 'flex',
-        //                 flexDirection: 'column'
-        //             }
-        //             // dataBind: {
-        //             //     component: {
-        //             //         name: MainComponent.quotedName(),
-        //             //         params: {
-        //             //             runtime: 'runtime',
-        //             //             bus: 'bus',
-        //             //             authorization: 'authorization',
-        //             //             pluginParams: 'pluginParams'
-        //             //         }
-        //             //     }
-        //             // }
-        //         },
-        //         gen.if(
-        //             'ready',
-        //             gen.component({
-        //                 name: MainComponent.name(),
-        //                 params: {
-        //                     runtime: 'runtime',
-        //                     bus: 'bus',
-        //                     authorization: 'authorization',
-        //                     pluginParams: 'pluginParams'
-        //                 }
-        //             })
-        //         )
-        //     );
-        //     ko.applyBindings(this.rootViewModel, this.container);
-        // }
-
-        showHelp() {
-            this.rootViewModel.bus.send('help');
-        }
-
         start() {
-            // return knockoutLoader.load().then((ko) => {
-            //     ko.options.deferUpdates = true;
-            //     ko.options.createChildContextWithAs = true;
             this.channel.start();
 
             this.channel.on('start', (payload) => {
@@ -111,34 +61,7 @@ define(['./windowChannel', './runtime'], (WindowChannel, Runtime) => {
                 this.config = config;
                 this.authorized = token ? true : false;
 
-                this.runtime = new runtime.Runtime({ config, token, username, realname, email });
-                // this.render(ko);
-
-                this.rootViewModel.bus.on('set-plugin-params', ({ pluginParams }) => {
-                    this.hostChannel.send('set-plugin-params', { pluginParams });
-                });
-
-                this.channel.on('show-help', () => {
-                    this.showHelp();
-                });
-
-                // this.channel.on('loggedin', ({ token, username, realname, email }) => {
-                //     this.runtime.auth({ token, username, realname, email });
-                //     this.rootViewModel.authorized(true);
-                //     this.rootViewModel.authorization({ token, username, realname, email });
-                //     // really faked for now.
-                //     // this.runtime.service('session').
-                // });
-
-                // this.channel.on('loggedout', () => {
-                //     this.runtime.unauth();
-                //     this.rootViewModel.authorized(false);
-                //     this.rootViewModel.authorization(null);
-                // });
-
-                // this.rootViewModel.bus.on('instrumentation', (payload) => {
-                //     this.hostChannel.send('send-instrumentation', payload);
-                // });
+                this.runtime = new Runtime({ config, token, username, realname, email });
             });
 
             window.document.addEventListener('click', () => {
@@ -151,11 +74,10 @@ define(['./windowChannel', './runtime'], (WindowChannel, Runtime) => {
             // on the same channel, with control via the channel id. However, there is a risk
             // the the channels will listen on for the same message ... unlikely though.
             // Still, it would be odd for one window to listen for messages on another...
-            this.hostChannel.send('ready', {
+            this.channel.send('ready', {
                 channelId: this.channel.id,
                 channelHost: this.channel.host
             });
-            // });
         }
 
         stop() {}

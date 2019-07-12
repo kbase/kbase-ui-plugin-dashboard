@@ -5,7 +5,7 @@ define(['bluebird', 'kb_lib/props', 'kb_lib/messenger', 'lib/widget/manager'], (
     WidgetManager
 ) => {
     'use strict';
-    class Runtime {
+    return class Runtime {
         constructor({ token, username, config }) {
             this.token = token;
             this.username = username;
@@ -82,7 +82,5 @@ define(['bluebird', 'kb_lib/props', 'kb_lib/messenger', 'lib/widget/manager'], (
                 window.clearInterval(this.heartbeatTimer);
             });
         }
-    }
-
-    return Runtime;
+    };
 });
