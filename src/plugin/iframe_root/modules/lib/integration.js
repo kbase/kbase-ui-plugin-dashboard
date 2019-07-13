@@ -50,18 +50,26 @@ define(['./windowChannel', './runtime'], (WindowChannel, Runtime) => {
             this.channel.start();
 
             this.channel.on('start', (payload) => {
-                const { token, username, config, realname, email } = payload;
-                if (token) {
-                    this.authorization = { token, username, realname, email };
-                } else {
-                    this.authorization = null;
-                }
-                this.token = token;
-                this.username = username;
-                this.config = config;
-                this.authorized = token ? true : false;
+                try {
+                    const { token, username, config, realname, email } = payload;
+                    if (token) {
+                        this.authorization = { token, username, realname, email };
+                    } else {
+                        this.authorization = null;
+                    }
+                    this.token = token;
+                    this.username = username;
+                    this.config = config;
+                    this.authorized = token ? true : false;
 
-                this.runtime = new Runtime({ config, token, username, realname, email });
+                    this.runtime = new Runtime({ config, token, username, realname, email });
+                } catch (ex) {
+                    this.channel.send('start-error', {
+                        message: ex.message
+                    });
+                }
+
+                this.channel.send('started');
             });
 
             window.document.addEventListener('click', () => {
