@@ -208,6 +208,8 @@ define(['jquery'], function ($) {
                             }
                             if (item.external) {
                                 link.attr('target', '_blank');
+                            } else {
+                                link.attr('target', '_parent');
                             }
 
                             var icon = $('<div class="navbar-icon" style=""></div>');
