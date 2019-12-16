@@ -2,11 +2,11 @@ define([
     './DashboardWidget',
     'kb_service/serviceApi',
     'bluebird'
-], function(DashboardWidget, ServiceApi, Promise) {
+], function (DashboardWidget, ServiceApi, Promise) {
     'use strict';
-    var Widget = Object.create(DashboardWidget, {
+    const Widget = Object.create(DashboardWidget, {
         init: {
-            value: function(cfg) {
+            value: function (cfg) {
                 cfg.name = 'CollaboratorsWidget';
                 cfg.title = 'Common Collaborator Network';
                 this.DashboardWidget_init(cfg);
@@ -15,7 +15,7 @@ define([
         },
 
         setup: {
-            value: function() {
+            value: function () {
                 // Set up workspace client
                 if (this.runtime.service('session').isLoggedIn()) {
                     this.serviceApi = ServiceApi.make({ runtime: this.runtime });
@@ -26,21 +26,21 @@ define([
         },
 
         setInitialState: {
-            value: function() {
-                return new Promise(function(resolve, reject) {
+            value: function () {
+                return new Promise((resolve, reject) => {
                     if (!this.runtime.getService('session').isLoggedIn()) {
                         resolve();
                     } else {
                         this.serviceApi.getCollaborators()
-                            .then(function(collaborators) {
+                            .then((collaborators) => {
                                 this.setState('collaborators', collaborators);
                                 resolve();
-                            }.bind(this))
-                            .catch(function(err) {
+                            })
+                            .catch((err) => {
                                 reject(err);
                             });
                     }
-                }.bind(this));
+                });
             }
         }
     });
