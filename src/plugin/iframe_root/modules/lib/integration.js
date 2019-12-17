@@ -14,24 +14,8 @@ define(['./windowChannel', './runtime'], (WindowChannel, Runtime) => {
 
             this.authorized = null;
 
-            // this is the channel for this window.
-            // this.channel = new WindowChannel.Channel({
-            //     window: this.rootWindow,
-            //     host: document.location.origin
-            //     // recieveFor: [this.id],
-            //     // clientId: this.iframe.id,
-            //     // hostId: this.id
-            // });
-
-            // this.performanceMonitoringListener = null;
-
-            // // This is the channel for the window containing this iframe.
-            // this.hostChannel = new WindowChannel.Channel({
-            //     window: this.rootWindow.parent,
-            //     host: this.hostParams.parentHost,
-            //     channelId: this.hostParams.channelId
-            // });
-
+            // This was one of the first plugins converted -- this and some other 
+            // implementations were refactored later ... but it does work.
             this.channel = new WindowChannel.BidirectionalWindowChannel({
                 on: this.rootWindow,
                 host: document.location.origin,
@@ -70,6 +54,12 @@ define(['./windowChannel', './runtime'], (WindowChannel, Runtime) => {
                 }
 
                 this.channel.send('started');
+                // this.channel.send('notification', {
+                //     type: 'info',
+                //     icon: 'info-circle',
+                //     message: 'hi! now this is a longer message to see what happens when we receive a very long message',
+                //     description: 'Greetings from the dashboard'
+                // });
             });
 
             window.document.addEventListener('click', () => {
@@ -88,7 +78,7 @@ define(['./windowChannel', './runtime'], (WindowChannel, Runtime) => {
             });
         }
 
-        stop() {}
+        stop() { }
     }
 
     return Integration;

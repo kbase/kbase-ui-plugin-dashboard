@@ -217,6 +217,10 @@ define(['kb_lib/html', './windowChannel', 'kb_lib/httpUtils'], function (html, W
                 this.runtime.send('ui', 'setTitle', title);
             });
 
+            this.channel.on('notification', (notification) => {
+                this.runtime.send('notification', 'notify', notification);
+            });
+
             this.channel.start();
         }
 
@@ -264,6 +268,8 @@ define(['kb_lib/html', './windowChannel', 'kb_lib/httpUtils'], function (html, W
         }
 
         setupChannelSends() {
+            // Receive messages form the ui runtime and forward to the 
+            // plugin.
             this.runtime.receive('session', 'loggedin', () => {
                 this.channel.send('loggedin', {
                     token: this.runtime.service('session').getAuthToken(),
