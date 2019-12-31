@@ -55,7 +55,7 @@ async function removeSourceMappingJS(rootDir) {
                 if (!mapRe.test(contents)) {
                     return;
                 }
-                console.warn('Fixing up css file to remove mapping');
+                console.warn('Fixing up JS file to remove mapping');
                 console.warn(match);
 
                 var fixed = contents.replace(mapRe, '');
@@ -68,12 +68,12 @@ async function removeSourceMappingJS(rootDir) {
 
 // removeSourceMapping(process.cwd());
 
-function main() {
+async function main() {
     const cwd = process.cwd().split('/');
     cwd.push('..');
     const projectPath = path.normalize(cwd.join('/'));
-    removeSourceMappingCSS(projectPath);
-    removeSourceMappingJS(projectPath);
+    await removeSourceMappingCSS(projectPath);
+    await removeSourceMappingJS(projectPath);
 }
 
 main();
