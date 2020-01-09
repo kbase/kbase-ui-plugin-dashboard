@@ -1,8 +1,12 @@
+/*eslint-env node */
+/*eslint strict: ["error", "global"] */
+'use strict';
 const bluebird = require('bluebird');
 const glob = bluebird.promisify(require('glob').Glob);
 const fs = bluebird.promisifyAll(require('fs-extra'));
 const Terser = require('terser');
 const path = require('path');
+const tar = require('tar');
 
 async function copyFiles(rootDir) {
     const root = rootDir.split('/');
@@ -61,6 +65,20 @@ async function minify(rootDir) {
     );
 }
 
+async function taritup(rootDir) {
+    const dir = 'dist';
+    const dest = rootDir.concat(['dist.tgz']).join('/');
+    console.log('tarring from ' + dir + ', to ' + dest);
+    return tar.c({
+        gzip: true,
+        file: dest,
+        portable: true,
+        cwd: rootDir.join('/')
+    }, [
+        dir
+    ]);
+}
+
 async function main() {
     const cwd = process.cwd().split('/');
     cwd.push('..');
@@ -70,6 +88,12 @@ async function main() {
     await copyFiles(projectPath);
     console.log('Minifying dist...');
     await minify(projectPath);
+    console.log('tar-ing dist...');
+    try {
+        await taritup(projectPath.split('/'));
+    } catch (ex) {
+        console.error('Error tarring up dist! ' + ex.message);
+    }
     console.log('done');
 }
 
