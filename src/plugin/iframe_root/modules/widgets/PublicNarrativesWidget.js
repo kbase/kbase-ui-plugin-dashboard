@@ -41,28 +41,6 @@ define(['jquery', './DashboardWidget', 'lib/widget/buttonBar', 'bootstrap'], fun
                     });
                     this.buttonbar
                         .clear()
-
-                        /*.addRadioToggle({
-                     buttons: [
-                     {
-                     label: 'Slider',
-                     active: true,
-                     class: 'btn-kbase',
-                     callback: function (e) {
-                     this.view = 'slider';
-                     this.refresh();
-                     }.bind(this)
-                     },
-                     {
-                     label: 'Table',
-                     class: 'btn-kbase',
-                     callback: function (e) {
-                     this.view = 'table';
-                     this.refresh();
-                     }.bind(this)
-                     }]
-                     })
-                     */
                         .addInput({
                             placeholder: 'Search',
                             place: 'end',
@@ -100,8 +78,6 @@ define(['jquery', './DashboardWidget', 'lib/widget/buttonBar', 'bootstrap'], fun
                 var that = this;
                 that.container.find('[data-toggle="popover"]').popover();
                 that.container.find('[data-toggle="tooltip"]').tooltip();
-                //this.container.find('[data-toggle="popover"]').popover();
-                //this.container.find('[data-toggle="tooltip"]').tooltip();
                 return this;
             }
         },
@@ -166,13 +142,6 @@ define(['jquery', './DashboardWidget', 'lib/widget/buttonBar', 'bootstrap'], fun
                     count: count,
                     filtered: filtered
                 });
-                /*Postal
-                 .channel('dashboard.metrics')
-                 .publish('update.sharedNarratives', {
-                 count: count
-                 }
-                 );
-                 */
             }
         },
         setInitialState: {
