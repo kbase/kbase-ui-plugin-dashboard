@@ -16,54 +16,54 @@
             </div>
         </div>
 
-    {% else %} 
+    {% else %}
         {% for narrative in state.narrativesFiltered %}
             <div class="-card" id="narrative-{{narrative.object.wsid}}">
                 <div class="-title">
-                    <a target="_blank" href="{{ env.getConfig(" services.narrative.url ") }}/narrative/{{narrative.object.obj_id}}">{{narrative.workspace.metadata.narrative_nice_name}}</a>
+                    <a target="_blank" href="{{ env.getConfig(" services.narrative.url ") }}/narrative/{{narrative.object.wsid}}">{{narrative.workspace.metadata.narrative_nice_name}}</a>
                 </div>
                 <div class="-body">
                     <div class="apps">
                         {% for app in narrative.apps|sort("name") %}
                             <div class="app">
-                            {% if app.info.icon.url %}
-                                <span style="font-size: 80%;">      
-                                    <span class="fa-stack" style="text-align: center;">
-                                        <img src="{{env.getConfig("services.narrative_method_store.image_url")}}{{app.info.icon.url}}" style="width: 20px; height: 20px">
+                                {% if app.info.icon.url %}
+                                    <span style="font-size: 80%;">
+                                        <span class="fa-stack" style="text-align: center;">
+                                            <img src="{{env.getConfig("services.narrative_method_store.image_url")}}{{app.info.icon.url}}" style="width: 20px; height: 20px">
+                                        </span>
                                     </span>
-                                </span>
-                            {% else %}
-                                <span style="font-size: 80%;">      
-                                    <span class="fa-stack">
-                                        <span class="fa fa-square fa-stack-2x" style="color: rgb(103, 58, 183);"></span>
-                                        <span class="fa fa-inverse fa-stack-1x fa-cube"></span>
+                                {% else %}
+                                    <span style="font-size: 80%;">
+                                        <span class="fa-stack">
+                                            <span class="fa fa-square fa-stack-2x" style="color: rgb(103, 58, 183);"></span>
+                                            <span class="fa fa-inverse fa-stack-1x fa-cube"></span>
+                                        </span>
                                     </span>
-                                </span>
-                            {% endif %} 
+                                {% endif %}
 
-                            {% if app.view %} 
-                                {% if app.view.state == 'error' %}
-                                    <span data-toggle="tooltip" data-placement="auto top" data-container=".your-narratives-slider" title="{{app.view.title}}">
-                                        {{app.name}}
-                                    </span> 
-                                {% elif app.view.state == 'warning' %}
-                                    <a href="/#catalog/apps/{{app.id}}" target="_blank">
+                                {% if app.view %}
+                                    {% if app.view.state == 'error' %}
                                         <span data-toggle="tooltip" data-placement="auto top" data-container=".your-narratives-slider" title="{{app.view.title}}">
                                             {{app.name}}
                                         </span>
-                                    </a>
+                                    {% elif app.view.state == 'warning' %}
+                                        <a href="/#catalog/apps/{{app.id}}" target="_blank">
+                                            <span data-toggle="tooltip" data-placement="auto top" data-container=".your-narratives-slider" title="{{app.view.title}}">
+                                                {{app.name}}
+                                            </span>
+                                        </a>
+                                    {% else %}
+                                        <a href="/#catalog/apps/{{app.id}}" target="_blank">
+                                            <span data-toggle="tooltip" data-placement="auto top" data-container="#narrative-{{narrative.object.wsid}}" title="{{app.view.title}}">
+                                                {{app.name}}
+                                            </span>
+                                        </a>
+                                    {% endif %}
                                 {% else %}
                                     <a href="/#catalog/apps/{{app.id}}" target="_blank">
-                                        <span data-toggle="tooltip" data-placement="auto top" data-container="#narrative-{{narrative.object.wsid}}" title="{{app.view.title}}">
-                                            {{app.name}}
-                                        </span>
+                                        {{app.name}}
                                     </a>
-                                {% endif %} 
-                            {% else %}
-                                <a href="/#catalog/apps/{{app.id}}" target="_blank">
-                                    {{app.name}}
-                                </a> 
-                            {% endif %}
+                                {% endif %}
                             </div>
                         {% endfor %}
                     </div>
@@ -73,25 +73,25 @@
                             <div class="method">
 
                                 {% if method.info.icon.url %}
-                                    <span style="font-size: 80%;">      
+                                    <span style="font-size: 80%;">
                                         <span class="fa-stack" style="text-align: center;">
                                             <img src="{{env.getConfig("services.narrative_method_store.image_url")}}{{method.info.icon.url}}" style="width: 20px; height: 20px">
                                         </span>
                                     </span>
                                 {% else %}
-                                    <span style="font-size: 80%;">      
+                                    <span style="font-size: 80%;">
                                         <span class="fa-stack">
                                             <span class="fa fa-square fa-stack-2x" style="color: rgb(103, 58, 183);"></span>
                                             <span class="fa fa-inverse fa-stack-1x fa-cube" style=""></span>
                                         </span>
                                     </span>
-                                {% endif %} 
-                                
-                                {% if method.view %} 
+                                {% endif %}
+
+                                {% if method.view %}
                                     {% if method.view.state == 'error' %}
                                         <span data-toggle="tooltip" data-placement="auto top" data-container=".public-narratives-slider" title="{{method.view.title}}">
                                             {{method.name}}
-                                        </span> 
+                                        </span>
                                     {% elif method.view.state == 'warning' %}
                                         <a href="/#catalog/apps/{{method | methodPath}}" target="_blank">
                                             <span data-toggle="tooltip" data-placement="auto top" data-container=".public-narratives-slider" title="{{method.view.title}}">
@@ -104,11 +104,11 @@
                                                 {{method.name}}
                                             </span>
                                         </a>
-                                    {% endif %} 
+                                    {% endif %}
                                 {% else %}
                                     <a href="/#catalog/apps/{{method | methodPath}}" target="_blank">
                                         {{method.name}}
-                                    </a> 
+                                    </a>
                                 {% endif %}
                             </div>
                         {% endfor %}
@@ -116,96 +116,101 @@
 
                     {% if narrative.cellTypes.markdown %}
                         <div class="markdown-cells">
-                            <span style="font-size: 80%;">      
+                            <span style="font-size: 80%;">
                                 <span class="fa-stack">
                                     <span class="fa fa-circle fa-stack-2x" style="color: #2196F3"></span>
-                            <span class="fa fa-inverse fa-stack-1x fa-paragraph"></span>
+                                    <span class="fa fa-inverse fa-stack-1x fa-paragraph"></span>
+                                </span>
                             </span>
-                            </span>
-                            {{narrative.cellTypes.markdown}} markdown cell{{narrative.cellTypes.markdown|plural}}
+                            {{narrative.cellTypes.markdown}}
+                            markdown cell{{narrative.cellTypes.markdown|plural}}
                         </div>
                     {% endif %}
                     {% if narrative.cellTypes.code %}
                         <div class="code-cells">
-                            <span style="font-size: 80%;">      
+                            <span style="font-size: 80%;">
                                 <span class="fa-stack">
                                     <span class="fa fa-circle fa-stack-2x" style="color: #2196F3"></span>
-                            <span class="fa fa-inverse fa-stack-1x fa-terminal"></span>
+                                    <span class="fa fa-inverse fa-stack-1x fa-terminal"></span>
+                                </span>
                             </span>
-                            </span>
-                            {{narrative.cellTypes.code}} code cell{{narrative.cellTypes.code|plural}}
+                            {{narrative.cellTypes.code}}
+                            code cell{{narrative.cellTypes.code|plural}}
                         </div>
                     {% endif %}
 
                 </div>
                 <div class="-saved">
                     <div class="date" style="font-style: italic;">
-                        saved {{narrative.object.save_date | jsDatestring | dateFormat }} by {% if narrative.object.saved_by == env.loggedInUser %}you{% else %}<a href="/#people/{{narrative.object.saved_by}}" target="_parent">{{narrative.object.saved_by}}</a>{% endif %}
+                        saved
+                        {{narrative.object.save_date | jsDatestring | dateFormat }}
+                        by
+                        {% if narrative.object.saved_by == env.loggedInUser %}you
+                        {% else %}
+                            <a href="/#people/{{narrative.object.saved_by}}" target="_parent">{{narrative.object.saved_by}}</a>
+                        {% endif %}
                     </div>
                 </div>
                 <div class="-footer">
                     <div style="display:inline-block; width: 100%;text-align: center;">
                         {% if narrative.workspace.user_permission == 'n' %}
-                            <span class="fa fa-minus dimmed" style="opacity: 0.4;" data-toggle="tooltip" data-placement="auto" title="Sharing information not available to you since the Narrative is not shared with you" data-container="body"></span> 
+                            <span class="fa fa-minus dimmed" data-container="body" data-placement="auto" data-toggle="tooltip" style="opacity: 0.4;" title="Sharing information not available to you since the Narrative is not shared with you"></span>
                         {% elif narrative.workspace.user_permission == 'r' %}
-                            <span class="fa fa-minus dimmed" style="opacity: 0.4;" data-toggle="tooltip" data-placement="auto" title="Sharing information not available for this read-only Narrative" data-container="body"></span> 
+                            <span class="fa fa-minus dimmed" data-container="body" data-placement="auto" data-toggle="tooltip" style="opacity: 0.4;" title="Sharing information not available for this read-only Narrative"></span>
                         {% else %}
                             {# Note: narrative sharing permissions are not reported for the current user -- we must grok that from other 
-                            properties. E.g. in this case we know the current user permission is 'w', which is only possible when then 
-                            narrative has been shared thus. #}
+                                                                                    properties. E.g. in this case we know the current user permission is 'w', which is only possible when then 
+                                                                                    narrative has been shared thus. #}
                             {% if narrative.permissions|length == 0 %}
-                                <span data-toggle="tooltip" data-placement="auto" title="This narrative has been shared with you, but not anyone else." data-container="body">
-                                        1 <span class="fa fa-share-alt"></span>
+                                <span data-container="body" data-placement="auto" data-toggle="tooltip" title="This narrative has been shared with you, but not anyone else.">
+                                    1
+                                    <span class="fa fa-share-alt"></span>
                                 </span>
                             {% elif narrative.permissions|length == 1 %}
-                                <span data-toggle="tooltip" data-placement="auto" title="This narrative has been shared with 2 users, including you." data-container="body">
-                                            {{ narrative.permissions | length + 1}}
-                                            <span class="fa fa-share-alt"></span>
-                                </span> 
+                                <span data-container="body" data-placement="auto" data-toggle="tooltip" title="This narrative has been shared with 2 users, including you.">
+                                    {{ narrative.permissions | length + 1}}
+                                    <span class="fa fa-share-alt"></span>
+                                </span>
                             {% else %}
-                                {% if env.loggedInUser == narrative.workspace.owner %} 
-                                    <span data-toggle="tooltip" data-placement="auto" title="This narrative is owned by you and shared with {{narrative.permissions|length}} other users." data-container="body">
-                                        {{ narrative.permissions | length }}  
+                                {% if env.loggedInUser == narrative.workspace.owner %}
+                                    <span data-container="body" data-placement="auto" data-toggle="tooltip" title="This narrative is owned by you and shared with {{narrative.permissions|length}} other users.">
+                                        {{ narrative.permissions | length }}
                                         <span class="fa fa-share-alt"></span>
                                     </span>
                                 {% else %}
-                                    <span data-toggle="tooltip" data-placement="auto" title="This narrative has been shared with {{narrative.permissions|length + 1}} users, including you." data-container="body">
-                                        {{ narrative.permissions | length + 1}}  
+                                    <span data-container="body" data-placement="auto" data-toggle="tooltip" title="This narrative has been shared with {{narrative.permissions|length + 1}} users, including you.">
+                                        {{ narrative.permissions | length + 1}}
                                         <span class="fa fa-share-alt"></span>
                                     </span>
                                 {% endif %}
-                            {% endif %} 
-                        {% endif %} 
+                            {% endif %}
+                        {% endif %}
                         {% if narrative.workspace.globalread == 'r' or narrative.workspace.globalread == 'w' %}
-                            <span class="fa fa-globe" data-toggle="tooltip" data-placement="auto" title="This narrative is Publicly available" data-container="body" style="margin-left: 10px"></span> 
+                            <span class="fa fa-globe" data-container="body" data-placement="auto" data-toggle="tooltip" style="margin-left: 10px" title="This narrative is Publicly available"></span>
                         {% endif %}
                     </div>
                 </div>
             </div>
-        {% endfor %} 
-    {% endif %} 
+        {% endfor %}
+    {% endif %}
 </div>
 <script>
-    require(['jquery'], function($) {
-        $('.slider.public-narratives-slider .-body')
-            .on('mouseover', function(e) {
-                $(this).addClass('-active');
-                $(this).addClass('-autoOverflow');
-            })
-            .on('mouseout', function(e) {
-                $(this).removeClass('-active');
-                $(this).removeClass('-autoOverflow');
-            });
+    require(["jquery"], function ($) {
+        $(".slider.public-narratives-slider .-body").on("mouseover", function (e) {
+            $(this).addClass("-active");
+            $(this).addClass("-autoOverflow");
+        }).on("mouseout", function (e) {
+            $(this).removeClass("-active");
+            $(this).removeClass("-autoOverflow");
+        });
 
-        $('.kbase-dashboard-view .slider')
-            .on('mouseover', function(e) {
-                $(this).addClass('-active');
-                $(this).addClass('-autoOverflow');
-            })
-            .on('mouseout', function(e) {
-                $(this).removeClass('-active');
-                $(this).removeClass('-autoOverflow');
-            });
+        $(".kbase-dashboard-view .slider").on("mouseover", function (e) {
+            $(this).addClass("-active");
+            $(this).addClass("-autoOverflow");
+        }).on("mouseout", function (e) {
+            $(this).removeClass("-active");
+            $(this).removeClass("-autoOverflow");
+        });
 
     });
 </script>
