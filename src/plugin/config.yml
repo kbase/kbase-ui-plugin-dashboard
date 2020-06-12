@@ -1,26 +1,19 @@
 ## YAML Template.
 ---
 package:
-  author: Erik Pearson
   name: dashboard
   description: The dashboard panel and associated widgets
-  date: August 6, 2015
-  version: 0.0.1
-source:
-  ## sources are relative to build/plugins/PACKAGE/source/javascript
-  ## NB: need to quote file names, otherwise
-  modules:
-  styles:
-    # - file: styles.css
+  type: iframe
 install:
-  widgets:
-    - module: ./panel
-      id: kb_plugin_dashboard
-      type: es6
   routes:
-    - path: ["dashboard"]
-      widget: kb_plugin_dashboard
+    - path: ["dashboard", {type: "rest", name: "path"}]
+      view: main
+      component: /pluginSupport/Plugin
       authorization: true
+      # TODO: get rid of this!!
+      params:
+        view: main
+        plugin: dashboard
   menu:
     - name: dashboard
       definition:

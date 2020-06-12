@@ -1,4 +1,4 @@
-define(['bluebird', 'kb_lib/html', 'kb_lib/observed', 'lib/widget/widgetSet', 'bootstrap'], function (
+define(['bluebird', 'kb_lib/html', 'kb_lib/observed', 'kbaseUI/widget//widgetSet', 'bootstrap'], function (
     Promise,
     html,
     Observed,
@@ -11,21 +11,17 @@ define(['bluebird', 'kb_lib/html', 'kb_lib/observed', 'lib/widget/widgetSet', 'b
 
     function widget(config) {
         var mount,
-            container,
-            runtime = config.runtime,
-            widgetSet = new WidgetSet({ widgetManager: runtime.widgetManager }),
-            viewState = new Observed();
+            container;
+        const runtime = config.runtime;
+        const widgetSet = new WidgetSet({
+            runtime,
+            widgetManager: runtime.service('widget').getWidgetManager()
+        });
+        const viewState = new Observed();
 
         function buildPanel() {
             return div(
-                {
-                    // style: {
-                    //     flex: '1 1 0px',
-                    //     display: 'flex',
-                    //     flexDirection: 'column',
-                    //     overflowY: 'auto'
-                    // }
-                },
+                {},
                 div(
                     {
                         class: 'kbase-view kbase-dashboard-view container-fluid',

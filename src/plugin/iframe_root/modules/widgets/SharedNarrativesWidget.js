@@ -1,4 +1,4 @@
-define(['jquery', './DashboardWidget', 'lib/widget/buttonBar', 'bluebird', 'bootstrap'], function (
+define(['jquery', './DashboardWidget', 'kbaseUI/widget/buttonBar', 'bluebird', 'bootstrap'], function (
     $,
     DashboardWidget,
     Buttonbar,
