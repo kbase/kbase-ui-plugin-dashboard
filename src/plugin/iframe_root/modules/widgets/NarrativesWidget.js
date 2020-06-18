@@ -1,4 +1,4 @@
-define(['jquery', './DashboardWidget', 'lib/widget/buttonBar', 'bootstrap'], function ($, DashboardWidget, ButtonBar) {
+define(['jquery', './DashboardWidget', 'kbaseUI/widget/buttonBar', 'bootstrap'], function ($, DashboardWidget, ButtonBar) {
     'use strict';
     var widget = Object.create(DashboardWidget, {
         init: {

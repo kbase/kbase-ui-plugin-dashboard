@@ -1,11 +1,18 @@
 {
     "name": "kbase-ui-plugin-dashboard",
     "description": "A primary view (panel) for the KBase UI to provide a user with a summary of their Narratives, relationships, and status",
-    "keywords": ["kbase", "widget"],
-    "author": ["eapearson@lbl.gov"],
+    "keywords": [
+        "kbase",
+        "widget"
+    ],
+    "author": [
+        "eapearson@lbl.gov"
+    ],
     "moduleType": "kbase-ui-plugin",
     "main": "src/plugin/config.yml",
-    "ignore": [".gitignore"],
+    "ignore": [
+        ".gitignore"
+    ],
     "repository": {
         "type": "git",
         "url": "git://github.com/kbase/kbase-ui-plugin-dashboard"
@@ -17,7 +24,7 @@
         "jquery": "^2.2.4",
         "kbase-service-clients-js": "^3.3.5",
         "kbase-common-js": "^2.18.1",
-        "kbase-common-es6": "^0.10.14"
+        "kbase-common-es6": "^0.11.11"
     },
     "devDependencies": {},
     "license": "SEE LICENSE IN LICENSE.md"

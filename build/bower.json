@@ -28,6 +28,7 @@
             "kbase-common-es6": "bower_components/kbase-common-es6/src/**",
             "kbase-common-js": "bower_components/kbase-common-js/dist/kb_common/**",
             "kbase-service-clients-js": "bower_components/kbase-service-clients-js/dist/kb_service/**",
+            "kbase-common-ts": "bower_components/kbase-common-ts/dist/*.js",
             "font-awesome": [
                 {
                     "bower_components/font-awesome/css/font-awesome.css": "css/font-awesome.css"
@@ -47,6 +48,7 @@
         "require-css": "0.1.10",
         "kbase-common-js": "2.18.1",
         "kbase-common-es6": "0.11.1",
+        "kbase-common-ts": "0.19.0",
         "js-yaml": "3.13.1",
         "requirejs-text": "2.0.16",
         "requirejs-yaml": "eapearson/requirejs-yaml#1.0.5",
