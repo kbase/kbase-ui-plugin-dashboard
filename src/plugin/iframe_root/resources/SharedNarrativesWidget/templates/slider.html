@@ -20,7 +20,10 @@
         {% for narrative in state.narrativesFiltered %}
         <div class="-card" id="narrative-{{narrative.object.wsid}}">
             <div class="-title">
-                <a target="_blank" href="{{ env.getConfig(" services.narrative.url ") }}/narrative/{{narrative.object.wsid}}">{{narrative.workspace.metadata.narrative_nice_name}}</a>
+                <a 
+                    target="_blank" 
+                    title="Narrative id {{narrative.object.wsid}}"
+                    href="{{ env.getConfig(" services.narrative.url ") }}/narrative/{{narrative.object.wsid}}">{{narrative.workspace.metadata.narrative_nice_name}}</a>
             </div>
             <div class="-body">
             <div class="apps">

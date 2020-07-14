@@ -51,16 +51,16 @@ define(['jquery', './DashboardWidget', 'kbaseUI/widget/buttonBar', 'bootstrap'],
         },
         filterNarratives: {
             value: function () {
-                var search = this.getParam('filter'),
-                    searchRe = new RegExp(search, 'i'),
-                    nar;
+                const search = this.getParam('filter');
+                const searchRe = new RegExp(search, 'i');
                 if (!search || search.length === 0) {
                     this.setState('narrativesFiltered', this.getState('narratives'));
                     return;
                 }
-                nar = this.getState('narratives').filter(
+                const nar = this.getState('narratives').filter(
                     function (x) {
                         if (
+                            String(x.workspace.id) === search ||
                             x.workspace.metadata.narrative_nice_name.match(searchRe) ||
                             (x.object.metadata.cellInfo &&
                                 function (apps) {
@@ -137,7 +137,7 @@ define(['jquery', './DashboardWidget', 'kbaseUI/widget/buttonBar', 'bootstrap'],
             }
         },
         setInitialState: {
-            value: function (options) {
+            value: function () {
                 return this.getNarratives({
                     type: 'narratorial'
                 }).then(

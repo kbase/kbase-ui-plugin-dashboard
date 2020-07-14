@@ -87,10 +87,12 @@ define(['jquery', './DashboardWidget', 'kbaseUI/widget/buttonBar', 'bootstrap'],
                     this.setState('narrativesFiltered', this.getState('narratives'));
                     return;
                 }
-                var searchRe = new RegExp(options.search, 'i'),
-                    nar = this.getState('narratives').filter(
-                        function (x) {
-                            if (
+                const search = options.search;
+                const searchRe = new RegExp(options.search, 'i');
+                const nar = this.getState('narratives').filter(
+                    function (x) {
+                        if (
+                            String(x.workspace.id) === search ||
                                 x.workspace.metadata.narrative_nice_name.match(searchRe) ||
                                 x.workspace.owner.match(searchRe) ||
                                 (x.object.metadata.cellInfo &&
@@ -111,13 +113,13 @@ define(['jquery', './DashboardWidget', 'kbaseUI/widget/buttonBar', 'bootstrap'],
                                             }
                                         }
                                     }.bind(this)(Object.keys(x.object.metadata.cellInfo.method)))
-                            ) {
-                                return true;
-                            } else {
-                                return false;
-                            }
-                        }.bind(this)
-                    );
+                        ) {
+                            return true;
+                        } else {
+                            return false;
+                        }
+                    }.bind(this)
+                );
                 this.setState('narrativesFiltered', nar);
             }
         },
