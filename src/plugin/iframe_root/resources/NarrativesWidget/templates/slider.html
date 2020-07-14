@@ -30,7 +30,7 @@
             <a 
                 target="_blank" 
                 title="Narrative id {{narrative.object.wsid}}"
-                href="{{ env.getConfig(" services.narrative.url ") }}/narrative/">{{narrative.workspace.metadata.narrative_nice_name}}</a>
+                href="{{ env.getConfig("services.narrative.url") }}/narrative/{{narrative.object.wsid}}">{{narrative.workspace.metadata.narrative_nice_name}}</a>
         </div>
         <div class="-body">
             <div class="apps">
