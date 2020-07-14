@@ -20,7 +20,7 @@
         {% for narrative in state.narrativesFiltered %}
             <div class="-card" id="narrative-{{narrative.object.wsid}}">
                 <div class="-title">
-                    <a target="_blank" title="Narrative id {{narrative.object.wsid}}" ref="{{ env.getConfig(" services.narrative.url ") }}/narrative/{{narrative.object.wsid}}">{{narrative.workspace.metadata.narrative_nice_name}}</a>
+                    <a target="_blank" title="Narrative id {{narrative.object.wsid}}" href="{{ env.getConfig("services.narrative.url") }}/narrative/{{narrative.object.wsid}}">{{narrative.workspace.metadata.narrative_nice_name}}</a>
                 </div>
                 <div class="-body">
                     <div class="apps">
@@ -159,8 +159,8 @@
                             <span class="fa fa-minus dimmed" data-container="body" data-placement="auto" data-toggle="tooltip" style="opacity: 0.4;" title="Sharing information not available for this read-only Narrative"></span>
                         {% else %}
                             {# Note: narrative sharing permissions are not reported for the current user -- we must grok that from other 
-                                                                                                                                            properties. E.g. in this case we know the current user permission is 'w', which is only possible when then 
-                                                                                                                                            narrative has been shared thus. #}
+                                                                                                                                                                                                                                properties. E.g. in this case we know the current user permission is 'w', which is only possible when then 
+                                                                                                                                                                                                                                narrative has been shared thus. #}
                             {% if narrative.permissions|length == 0 %}
                                 <span data-container="body" data-placement="auto" data-toggle="tooltip" title="This narrative has been shared with you, but not anyone else.">
                                     1
