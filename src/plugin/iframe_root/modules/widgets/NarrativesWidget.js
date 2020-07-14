@@ -72,6 +72,7 @@ define(['jquery', './DashboardWidget', 'kbaseUI/widget/buttonBar', 'bootstrap'],
                 nar = this.getState('narratives').filter(
                     function (x) {
                         if (
+                            String(x.workspace.id) === search ||
                             x.workspace.metadata.narrative_nice_name.match(searchRe) ||
                             (x.object.metadata.cellInfo &&
                                 function (apps) {

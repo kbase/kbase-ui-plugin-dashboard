@@ -1,8 +1,13 @@
-define(['jquery', './DashboardWidget', 'kbaseUI/widget/buttonBar', 'bluebird', 'bootstrap'], function (
+define([
+    'jquery',
+    './DashboardWidget',
+    'kbaseUI/widget/buttonBar',
+
+    'bootstrap'
+], function (
     $,
     DashboardWidget,
-    Buttonbar,
-    Promise
+    Buttonbar
 ) {
     'use strict';
     var widget = Object.create(DashboardWidget, {
@@ -82,6 +87,7 @@ define(['jquery', './DashboardWidget', 'kbaseUI/widget/buttonBar', 'bluebird', '
                 var nar = this.getState('narratives').filter(
                     function (x) {
                         if (
+                            String(x.workspace.id) === search ||
                             x.workspace.metadata.narrative_nice_name.match(searchRe) ||
                             x.workspace.owner.match(searchRe) ||
                             (x.object.metadata.cellInfo &&
@@ -135,25 +141,8 @@ define(['jquery', './DashboardWidget', 'kbaseUI/widget/buttonBar', 'bluebird', '
                 });
             }
         },
-        getAppsx: {
-            value: function () {
-                var methodStore = new NarrativeMethodStore(
-                    this.runtime.getConfig('services.narrative_method_store.url'),
-                    {
-                        token: this.runtime.service('session').getAuthToken()
-                    }
-                );
-                return Promise.all([methodStore.list_apps({})]).spread(function (apps) {
-                    var appMap = {};
-                    apps.forEach(function (app) {
-                        appMap[app.id] = app;
-                    });
-                    return appMap;
-                });
-            }
-        },
         setInitialState: {
-            value: function (options) {
+            value: function () {
                 return this.getNarratives({
                     type: 'shared'
                 }).then(
