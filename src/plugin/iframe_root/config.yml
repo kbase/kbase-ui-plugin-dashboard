@@ -1,0 +1,48 @@
+## YAML Template.
+---
+package:
+  author: Erik Pearson
+  name: dashboard
+  description: The dashboard panel and associated widgets
+  date: August 6, 2015
+  version: 0.0.1
+source:
+  ## sources are relative to build/plugins/PACKAGE/source/javascript
+  ## NB: need to quote file names, otherwise
+  modules:
+  styles:
+    - file: styles.css
+install:
+  widgets:
+    - module: ./dashboardPanel
+      id: dashboardPanel
+      type: factory
+    - module: ./widgets/CollaboratorsWidget
+      id: dashboardCollaborators
+      type: object
+    - module: ./widgets/MetricsWidget
+      id: dashboardMetrics
+      type: object
+    - module: ./widgets/NarrativesWidget
+      id: dashboardNarratives
+      type: object
+    - module: ./widgets/PublicNarrativesWidget
+      id: dashboardPublicNarratives
+      type: object
+    - module: ./widgets/NarratorialsWidget
+      id: dashboardNarratorials
+      type: object
+    - module: ./widgets/SharedNarrativesWidget
+      id: dashboardSharedNarratives
+      type: object
+  routes:
+    - path: ["dashboard"]
+      widget: dashboardPanel
+      authorization: true
+  menu:
+    - name: dashboard
+      menus: ["authenticated"]
+      definition:
+        path: ["dashboard"]
+        label: Dashboard
+        icon: dashboard

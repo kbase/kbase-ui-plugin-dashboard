@@ -1,0 +1,24 @@
+{
+    "name": "kbase-ui-plugin-dashboard",
+    "version": "1.0.0",
+    "description": "A ui plugin for the UI",
+    "main": "index.js",
+    "scripts": {
+        "build": "bash scripts/build-plugin.bash",
+        "build-dev": "bash scripts/build-plugin-dev.bash"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/kbase/kbase-ui-plugin-dashboard.git"
+    },
+    "author": "",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/kbase/kbase-ui-plugin-dashboard/issues"
+    },
+    "homepage": "https://github.com/kbase/kbase-ui-plugin-dashboard#readme",
+    "dependencies": {
+        "eslint": "6.4.0",
+        "standard": "14.3.1"
+    }
+}
