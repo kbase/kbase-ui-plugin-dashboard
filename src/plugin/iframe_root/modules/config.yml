@@ -14,8 +14,8 @@ source:
     - file: styles.css
 install:
   widgets:
-    - module: ./dashboardPanel
-      id: dashboardPanel
+    - module: ./dashboardRedirect
+      id: dashboardRedirect
       type: factory
     - module: ./widgets/CollaboratorsWidget
       id: dashboardCollaborators
@@ -37,7 +37,7 @@ install:
       type: object
   routes:
     - path: ["dashboard"]
-      widget: dashboardPanel
+      widget: dashboardRedirect
       authorization: true
   menu:
     - name: dashboard
@@ -49,5 +49,5 @@ install:
 
 views:
   - view: main
-    module: dashboardPanel
+    module: dashboardRedirect
     type: factory
