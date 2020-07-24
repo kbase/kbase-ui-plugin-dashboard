@@ -44,5 +44,5 @@ install:
       menus: ["authenticated"]
       definition:
         path: ["dashboard"]
-        label: Dashboard
+        label: Narratives
         icon: dashboard
