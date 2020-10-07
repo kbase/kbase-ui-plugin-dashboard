@@ -51,11 +51,6 @@ define(['bluebird', 'kb_lib/html', 'kb_lib/observed', 'kbaseUI/widget//widgetSet
                                         viewState: viewState
                                     })
                                 }),
-                                // div({
-                                //     id: widgetSet.addWidget('dashboardMetrics', {
-                                //         viewState: viewState
-                                //     })
-                                // }),
                                 div({
                                     id: widgetSet.addWidget('dashboardCollaborators', {
                                         viewState: viewState

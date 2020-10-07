@@ -6,14 +6,9 @@ package:
   type: iframe
 install:
   routes:
-    - path: ["dashboard", {type: "rest", name: "path"}]
+    - path: dashboard
       view: main
-      component: /pluginSupport/Plugin
       authorization: true
-      # TODO: get rid of this!!
-      params:
-        view: main
-        plugin: dashboard
   menu:
     - name: dashboard
       definition:

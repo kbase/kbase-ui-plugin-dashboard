@@ -5,6 +5,7 @@
     "main": "index.js",
     "scripts": {
         "build": "bash scripts/build-plugin.bash",
+        "build-dist": "bash scripts/build-plugin-dist.bash",
         "build-dev": "bash scripts/build-plugin-dev.bash"
     },
     "repository": {
