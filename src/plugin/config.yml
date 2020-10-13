@@ -4,14 +4,14 @@ package:
   name: dashboard
   description: The dashboard panel and associated widgets
   type: iframe
-install:
+services:
   routes:
-    - path: dashboard
+    - path: "{{plugin}}"
       view: main
       authorization: true
   menu:
-    - name: dashboard
-      definition:
-        path: ["dashboard"]
+    items:
+      - name: dashboard
+        path: "{{plugin}}"
         label: Dashboard
         icon: dashboard
